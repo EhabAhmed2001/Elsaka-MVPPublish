@@ -1,0 +1,174 @@
+@using ElsakaHerbs.ViewModels.Reviews
+@{
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "آراء العملاء";
+    var reviews = ViewBag.Reviews as List<CustomerReviewImageViewModel> ?? new();
+}
+
+<section class="page-section active" id="page-reviews">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>آراء العملاء (صور سكرين شوت)</h2>
+            <p class="text-muted small mb-0">رفع صور تجارب العملاء، تفعيل/تعطيل الظهور، والحذف النهائي.</p>
+        </div>
+        <div>
+            <input type="file" id="reviewBulkInput" multiple accept="image/*" class="d-none">
+            <button class="btn btn-success" type="button" onclick="document.getElementById('reviewBulkInput').click()">
+                <i class="bi bi-cloud-arrow-up me-1"></i> رفع صور جديدة
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-4" id="reviewsGrid">
+        @if (reviews.Count == 0)
+        {
+            <div class="col-12 text-center py-5 text-muted">
+                <i class="bi bi-images fs-1 d-block mb-2"></i>
+                <p>لا توجد صور آراء مضافة حتى الآن. اضغط على زر رفع صور جديدة لإضافة أول صورة.</p>
+            </div>
+        }
+        @foreach (var rev in reviews)
+        {
+            <div class="col-6 col-md-4 col-lg-3 review-card-col" id="review-col-@rev.Id">
+                <div class="card h-100 shadow-sm border-0 overflow-hidden">
+                    <div class="review-img-wrap" role="button" tabindex="0" title="اضغط لتكبير الصورة">
+                        <img src="@rev.ImageUrl" class="card-img-top review-zoomable-img" alt="Review">
+                        <div class="review-zoom-badge position-absolute bottom-0 start-0 m-2 badge bg-dark bg-opacity-75 text-white d-flex align-items-center gap-1">
+                            <i class="bi bi-zoom-in"></i> تكبير
+                        </div>
+                    </div>
+                    <div class="card-body p-3 text-center">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge @(rev.IsVisible ? "bg-success" : "bg-secondary")">
+                                @(rev.IsVisible ? "معروضة" : "مخفية")
+                            </span>
+                            <div>
+                                <button class="btn btn-sm btn-outline-secondary btn-toggle-review" data-id="@rev.Id" title="تغيير الظهور">
+                                    <i class="bi @(rev.IsVisible ? "bi-eye-slash" : "bi-eye")"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger btn-delete-review ms-1" data-id="@rev.Id" title="حذف نهائي">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
+<!-- Modal for Image Zoom Preview -->
+<div class="modal fade" id="reviewZoomModal" tabindex="-1" aria-labelledby="reviewZoomModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg review-zoom-modal-content">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold" id="reviewZoomModalLabel">
+                    <i class="bi bi-chat-square-quote me-1 text-success"></i> عرض رأي العميل
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+            </div>
+            <div class="modal-body text-center p-3 p-md-4">
+                <div class="position-relative d-inline-block w-100">
+                    <img id="reviewZoomModalImg" src="" alt="Customer Review Zoom" class="img-fluid rounded-3 shadow review-modal-img">
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 pt-0 justify-content-between">
+                <a id="reviewZoomDownloadBtn" href="" target="_blank" download class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-box-arrow-up-right me-1"></i> تحميل
+                </a>
+                <button type="button" class="btn btn-secondary btn-sm px-4" data-bs-dismiss="modal">إغلاق</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Review Image Zoom Modal
+            const zoomModalEl = document.getElementById("reviewZoomModal");
+            const zoomModal = zoomModalEl ? new bootstrap.Modal(zoomModalEl) : null;
+            const zoomImg = document.getElementById("reviewZoomModalImg");
+            const zoomDownloadBtn = document.getElementById("reviewZoomDownloadBtn");
+
+            document.querySelectorAll(".review-img-wrap").forEach(wrap => {
+                const openZoom = () => {
+                    const img = wrap.querySelector(".review-zoomable-img");
+                    if (img && zoomModal && zoomImg) {
+                        zoomImg.src = img.src;
+                        if (zoomDownloadBtn) {
+                            zoomDownloadBtn.href = img.src;
+                        }
+                        zoomModal.show();
+                    }
+                };
+
+                wrap.addEventListener("click", openZoom);
+                wrap.addEventListener("keydown", (e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        openZoom();
+                    }
+                });
+            });
+
+            // Upload Reviews
+            document.getElementById("reviewBulkInput")?.addEventListener("change", async function () {
+                if (!this.files.length) return;
+                const formData = new FormData();
+                for (let i = 0; i < this.files.length; i++) {
+                    formData.append("images", this.files[i]);
+                }
+                try {
+                    const res = await fetch("/dashboard/reviews/upload", {
+                        method: "POST",
+                        body: formData
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert(data.message || "حدث خطأ");
+                    }
+                } catch {
+                    alert("تعذر رفع الصور");
+                }
+            });
+
+            // Toggle Review
+            document.querySelectorAll(".btn-toggle-review").forEach(btn => {
+                btn.addEventListener("click", async function () {
+                    const id = this.getAttribute("data-id");
+                    try {
+                        const res = await fetch(`/dashboard/reviews/toggle/${id}`, { method: "POST" });
+                        const data = await res.json();
+                        if (data.success) location.reload();
+                    } catch {
+                        alert("حدث خطأ");
+                    }
+                });
+            });
+
+            // Delete Review
+            document.querySelectorAll(".btn-delete-review").forEach(btn => {
+                btn.addEventListener("click", async function () {
+                    if (!confirm("هل أنت متأكد من الحذف النهائي لهذه الصورة من المتجر والقرص الصلب؟")) return;
+                    const id = this.getAttribute("data-id");
+                    try {
+                        const res = await fetch(`/dashboard/reviews/delete/${id}`, { method: "POST" });
+                        const data = await res.json();
+                        if (data.success) {
+                            document.getElementById("review-col-" + id)?.remove();
+                        } else {
+                            alert(data.message || "تعذر الحذف");
+                        }
+                    } catch {
+                        alert("تعذر الاتصال بالخادم");
+                    }
+                });
+            });
+        });
+    </script>
+}

@@ -1,0 +1,15 @@
+@{
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "لوحة التحكم";
+}
+
+<div class="text-center py-5">
+    <div class="spinner-border text-primary mb-3" role="status"></div>
+    <p class="text-muted">جاري التحويل إلى قسم محتوى الموقع...</p>
+</div>
+
+@section Scripts {
+    <script>
+        window.location.replace("/dashboard/content");
+    </script>
+}

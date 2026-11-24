@@ -1,0 +1,318 @@
+﻿@model ElsakaHerbs.ViewModels.Landing.LandingPageViewModel
+@{
+    ViewData["Title"] = "الرئيسية";
+    ViewBag.SiteContent = Model.SiteContent;
+}
+
+<!-- Hero Section -->
+<section class="hero-section" id="home" data-section>
+    <picture>
+        <source media="(max-width: 767px)" srcset="~/assets/MOBILE2.jpeg">
+        <img class="hero-image" src="~/assets/WEB.jpeg" alt="أعشاب السقا">
+    </picture>
+
+    <div class="container">
+        <div class="hero-copy">
+            <h1>
+                @Model.SiteContent.HeroTitle
+                <br>
+                <span>@Model.SiteContent.HeroHighlight</span>
+            </h1>
+
+            <div class="hero-trust ms-4">
+                <span><i class="bi bi-check-circle-fill"></i> طلب سهل وسريع</span>
+                <span><i class="bi bi-truck"></i> الدفع عند الاستلام</span>
+            </div>
+
+            <div class="hero-actions">
+                <a class="btn btn-main btn-lg" href="#packages">
+                    اكتشف العبوات <i class="bi bi-arrow-left"></i>
+                </a>
+                <a class="btn btn-soft btn-lg" href="#about">تعرف على المنتج</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- About Section -->
+<section class="section-pad" id="about" data-section>
+    <div class="container">
+        <div class="section-heading text-center">
+            <h2>
+                اقوى اعشاب تخسيس فى
+                <span>مصر والوطن العربى</span>
+            </h2>
+        </div>
+        <div class="row align-items-center about-row">
+            <div class="col-lg-5">
+                <div class="about-art">
+                    <img src="~/assets/about.jpeg" alt="عن المنتج">
+                </div>
+            </div>
+
+            <div class="col-lg-7 my-4">
+                <div class="about-content">
+                    <div class="about-description">
+                        <h5 class="fw-bold">
+                            تعتبر <span>اعشاب السقا</span> الهندية هي البديل الآمن للحقن والبراشيم وعمليات التكميم والتخسيس بشكل عام، وذلك لاحتوائها على أكثر من 15 نوع عشب هندي نادر.
+                        </h5>
+
+                        <p class="benefits-title">بتعمل على:</p>
+                        <ul class="about-benefits fw-bold">
+                            <li>تقليل الشهية.</li>
+                            <li>تعلي معدل الحرق.</li>
+                            <li>تساعد على التخلص من الإمساك والانتفاخات والغازات.</li>
+                            <li>تساعد على التخلص من عسر الهضم واضطرابات المعدة.</li>
+                            <li>إذابة الدهون والشحوم وإخراجها من الجسم بطريقة صحية.</li>
+                            <li>فرق ملحوظ من أول شهر في الميزان وفي شكل الجسم.</li>
+                        </ul>
+                    </div>
+
+                    <a href="#packages" class="inline-link">شاهد العبوات المتاحة <i class="bi bi-arrow-left"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Ingredients Section -->
+<section class="section-pad soft-section" id="ingredients" data-section>
+    <img class="ingredients-image" src="~/assets/ing.jpeg" alt="مكونات المنتج">
+</section>
+
+<!-- Usage Section -->
+<section class="section-pad" id="usage" data-section>
+    <div class="container">
+        <div class="section-heading text-center">
+            <span class="eyebrow">بكل سهولة</span>
+            <h2>طريقة <span>الاستخدام</span></h2>
+            <p>خطوات بسيطة تساعدك على معرفة طريقة الاستخدام الصحيحة.</p>
+        </div>
+        <div class="steps-row">
+            <article class="step-card">
+                <span class="step-number">01</span>
+                <div class="step-icon"><i class="bi bi-cup"></i></div>
+                <h3>جهّز الكمية</h3>
+                <p>خد نصف معلقة صغيرة من الأعشاب وحطها في الكوباية.</p>
+            </article>
+
+            <article class="step-card">
+                <span class="step-number">02</span>
+                <div class="step-icon"><i class="bi bi-cup-hot"></i></div>
+                <h3>أضف الماء الساخن</h3>
+                <p>انزل عليها بماء ساخن وقلبها كويس لحد ما تمتزج.</p>
+            </article>
+
+            <article class="step-card">
+                <span class="step-number">03</span>
+                <div class="step-icon"><i class="bi bi-clock-history"></i></div>
+                <h3>مواعيد الاستخدام</h3>
+                <p>مرة الصبح قبل الفطار بساعة، ومرة بالليل بعد العشاء بساعة.</p>
+            </article>
+        </div>
+    </div>
+</section>
+
+<!-- Reviews Section -->
+<section class="section-pad soft-section" id="reviews" data-section>
+    <div class="container">
+        <div class="section-heading text-center">
+            <span class="eyebrow">تجارب حقيقية</span>
+            <h2>آراء <span>عملائنا</span></h2>
+            <p>يسعدنا مشاركة بعض آراء وتجارب عملائنا الكرام.</p>
+        </div>
+
+        <div class="review-carousel-container position-relative">
+            <button class="review-nav-arrow review-nav-prev" id="reviewNavPrev" type="button" aria-label="السابق" title="السابق" disabled>
+                <i class="bi bi-chevron-right"></i>
+            </button>
+
+            <div class="review-gallery-track" id="reviewGalleryTrack">
+                @if (Model.Reviews != null && Model.Reviews.Count > 0)
+                {
+                    @foreach (var review in Model.Reviews)
+                    {
+                        <div class="review-shot" role="button" tabindex="0" data-bs-toggle="modal" data-bs-target="#reviewModal" data-image="@review.ImageUrl">
+                            <img src="@review.ImageUrl" alt="رأي أحد العملاء" loading="lazy">
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="review-shot" role="button" tabindex="0" data-bs-toggle="modal" data-bs-target="#reviewModal" data-image="/assets/review1.jpeg">
+                        <img src="~/assets/review1.jpeg" alt="رأي عميل" loading="lazy">
+                    </div>
+                    <div class="review-shot" role="button" tabindex="0" data-bs-toggle="modal" data-bs-target="#reviewModal" data-image="/assets/review2.jpeg">
+                        <img src="~/assets/review2.jpeg" alt="رأي عميل" loading="lazy">
+                    </div>
+                    <div class="review-shot" role="button" tabindex="0" data-bs-toggle="modal" data-bs-target="#reviewModal" data-image="/assets/review3.jpeg">
+                        <img src="~/assets/review3.jpeg" alt="رأي عميل" loading="lazy">
+                    </div>
+                }
+            </div>
+
+            <button class="review-nav-arrow review-nav-next" id="reviewNavNext" type="button" aria-label="التالي" title="التالي">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- Packages Section -->
+<section class="section-pad packages-section" id="packages" data-section>
+    <div class="container">
+        <div class="section-heading text-center">
+            <span class="eyebrow">اختار الأنسب ليك</span>
+            <h2>عبوات <span>المنتج</span></h2>
+            <p>قارن بين العبوات واختر اللي يناسب احتياجك.</p>
+        </div>
+
+        <div class="row g-4 package-grid">
+            @foreach (var pkg in Model.Packages)
+            {
+                <div class="col-6 col-xl-3">
+                    <article class="package-card">
+                        <h3><a class="package-title-link" href="/product/@pkg.Id">@pkg.Name</a></h3>
+                        <div class="duration">@pkg.DurationDays يوم</div>
+                        <img src="@pkg.DefaultImageUrl" alt="@pkg.Name">
+                        
+                        <div class="package-price">
+                            @pkg.Price.ToString("N0") <small>ج.م</small>
+                            @if (pkg.OriginalPrice.HasValue && pkg.OriginalPrice.Value > pkg.Price)
+                            {
+                                <span class="text-decoration-line-through text-muted ms-2 fs-6">@pkg.OriginalPrice.Value.ToString("N0") ج.م</span>
+                            }
+                        </div>
+                        
+                        <p><i class="bi bi-check2"></i> @pkg.PacketsCount عبوة</p>
+
+                        <div class="package-actions">
+                            <button class="btn btn-outline-main order-package"
+                                    data-package-id="@pkg.Id"
+                                    data-package="@pkg.Name"
+                                    data-price="@pkg.Price"
+                                    data-duration="@pkg.DurationDays يوم">
+                                أضف إلى السلة <i class="bi bi-bag-plus"></i>
+                            </button>
+                            <a class="btn btn-main" href="/Checkout?package=@pkg.Id">
+                                اطلب الآن <i class="bi bi-arrow-left"></i>
+                            </a>
+                        </div>
+
+                        <a class="package-details-link" href="/product/@pkg.Id">تفاصيل العرض <i class="bi bi-arrow-left"></i></a>
+                        
+                        @if (pkg.PurchaseCount > 0)
+                        {
+                            <div class="package-purchase-count">
+                                <i class="bi bi-people-fill"></i>
+                                <span>تم شراء <strong>@pkg.PurchaseCount</strong> عبوة من قبل</span>
+                            </div>
+                        }
+                    </article>
+                </div>
+            }
+        </div>
+
+        <p class="package-footnote"><i class="bi bi-shield-check"></i> الدفع نقدًا عند الاستلام — سيتم تأكيد تفاصيل الطلب قبل الشحن.</p>
+    </div>
+</section>
+
+<!-- Closing CTA -->
+<section class="closing-cta">
+    <div class="container">
+        <div class="closing-inner">
+            <div>
+                <span class="eyebrow">@Model.SiteContent.CtaEyebrow</span>
+                <h2>@Model.SiteContent.CtaTitle</h2>
+                <p>@Model.SiteContent.CtaDescription</p>
+            </div>
+            <a href="#packages" class="btn btn-light btn-lg">شاهد العبوات <i class="bi bi-arrow-left"></i></a>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Modal for customer review images
+            const reviewModal = document.getElementById("reviewModal");
+            const reviewModalBody = document.getElementById("reviewModalBody");
+            if (reviewModal && reviewModalBody) {
+                reviewModal.addEventListener("show.bs.modal", function (event) {
+                    const button = event.relatedTarget;
+                    const imageUrl = button?.getAttribute("data-image");
+                    if (imageUrl) {
+                        reviewModalBody.innerHTML = `<img src="${imageUrl}" class="img-fluid rounded" alt="رأي العميل">`;
+                    }
+                });
+            }
+
+            // Customer Reviews Horizontal Carousel Navigation
+            const track = document.getElementById("reviewGalleryTrack");
+            const prevBtn = document.getElementById("reviewNavPrev");
+            const nextBtn = document.getElementById("reviewNavNext");
+
+            if (track && prevBtn && nextBtn) {
+                function updateNavButtons() {
+                    const maxScroll = track.scrollWidth - track.clientWidth;
+                    if (maxScroll <= 5) {
+                        prevBtn.disabled = true;
+                        nextBtn.disabled = true;
+                        return;
+                    }
+
+                    // In RTL, modern browsers represent scrollLeft as 0 at start and negative when moving forward (left)
+                    const currentScroll = Math.abs(track.scrollLeft);
+                    prevBtn.disabled = currentScroll <= 5;
+                    nextBtn.disabled = currentScroll >= maxScroll - 8;
+                }
+
+                // In RTL: Next navigates to the left (forward in RTL), Prev navigates to the right
+                nextBtn.addEventListener("click", function () {
+                    const step = track.clientWidth * 0.85;
+                    track.scrollBy({ left: -step, behavior: "smooth" });
+                });
+
+                prevBtn.addEventListener("click", function () {
+                    const step = track.clientWidth * 0.85;
+                    track.scrollBy({ left: step, behavior: "smooth" });
+                });
+
+                track.addEventListener("scroll", updateNavButtons, { passive: true });
+                window.addEventListener("resize", updateNavButtons);
+                // Initial check after images/layout load
+                setTimeout(updateNavButtons, 200);
+
+                // Desktop Mouse Drag Support
+                let isDragging = false;
+                let startX = 0;
+                let scrollLeftInitial = 0;
+
+                track.addEventListener("mousedown", (e) => {
+                    isDragging = true;
+                    startX = e.pageX - track.offsetLeft;
+                    scrollLeftInitial = track.scrollLeft;
+                    track.style.scrollBehavior = "auto";
+                    track.style.cursor = "grabbing";
+                });
+
+                window.addEventListener("mouseup", () => {
+                    if (isDragging) {
+                        isDragging = false;
+                        track.style.scrollBehavior = "smooth";
+                        track.style.cursor = "";
+                        updateNavButtons();
+                    }
+                });
+
+                track.addEventListener("mousemove", (e) => {
+                    if (!isDragging) return;
+                    e.preventDefault();
+                    const x = e.pageX - track.offsetLeft;
+                    const walk = (x - startX);
+                    track.scrollLeft = scrollLeftInitial - walk;
+                });
+            }
+        });
+    </script>
+}

@@ -1,0 +1,103 @@
+body {
+    font-family: 'Cairo', sans-serif;
+    background: linear-gradient(135deg, #f0fdf4 0%, #f7fee7 50%, #ffffff 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 20px;
+    color: #1f2937;
+}
+.maintenance-card {
+    background: #ffffff;
+    border-radius: 24px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(22, 101, 52, 0.1);
+    max-width: 600px;
+    width: 100%;
+    padding: 40px 30px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+.maintenance-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, #15803d, #84cc16, #15803d);
+}
+.logo-img {
+    max-height: 70px;
+    margin-bottom: 25px;
+}
+.icon-circle {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: #dcfce7;
+    color: #15803d;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.8rem;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 20px rgba(22, 101, 52, 0.15);
+    animation: pulse 2s infinite ease-in-out;
+}
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+.maintenance-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #14532d;
+    margin-bottom: 16px;
+}
+.maintenance-desc {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #4b5563;
+    margin-bottom: 30px;
+    white-space: pre-line;
+}
+.btn-wa {
+    background-color: #25d366;
+    color: #ffffff;
+    font-weight: 700;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-size: 1.05rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 14px rgba(37, 211, 102, 0.3);
+}
+.btn-wa:hover {
+    background-color: #20bd5a;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(37, 211, 102, 0.4);
+}
+.footer-note {
+    margin-top: 35px;
+    padding-top: 20px;
+    border-top: 1px solid #f3f4f6;
+    font-size: 0.85rem;
+    color: #9ca3af;
+}
+.admin-link {
+    color: #9ca3af;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+.admin-link:hover {
+    color: #15803d;
+}

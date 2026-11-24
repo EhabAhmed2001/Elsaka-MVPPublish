@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="ElsakaHerbs.Business/ElsakaHerbs.Services.csproj" />
+  <Project Path="ElsakaHerbs.Entities/ElsakaHerbs.DataAccess.csproj" />
+  <Project Path="ElsakaHerbs.interfaces/ElsakaHerbs.interfaces.csproj" />
+  <Project Path="ElsakaHerbs.ViewModels/ElsakaHerbs.ViewModels.csproj" />
+  <Project Path="ElsakaHerbsMVC/ElsakaHerbsMVC.csproj" />
+</Solution>

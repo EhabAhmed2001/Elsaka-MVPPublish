@@ -1,0 +1,256 @@
+@using ElsakaHerbs.ViewModels.SiteContent
+@using ElsakaHerbs.ViewModels.Shipping
+@{
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "محتوى الصفحة الرئيسية والشحن";
+    var content = ViewBag.SiteContent as SiteContentViewModel ?? new();
+    var governorates = ViewBag.Governorates as List<GovernorateShippingViewModel> ?? new();
+}
+
+<section class="page-section active" id="page-content">
+    <div class="section-heading mb-4">
+        <h2>محتوى الصفحة الرئيسية والشحن</h2>
+    </div>
+
+    <form id="contentForm" action="/dashboard/content/update" method="post">
+        @Html.AntiForgeryToken()
+        <div class="managed-grid">
+            <!-- Website Status & Maintenance Mode -->
+            <div class="panel editor-panel managed-wide mb-4 p-4 bg-white rounded shadow-sm border border-2 @(content.IsWebsiteEnabled ? "border-success-subtle" : "border-warning-subtle")">
+                <div class="editor-heading d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="editor-icon fs-3 @(content.IsWebsiteEnabled ? "text-success" : "text-warning")">
+                            <i class="bi @(content.IsWebsiteEnabled ? "bi-globe" : "bi-cone-striped")"></i>
+                        </span>
+                        <div>
+                            <h3 class="h5 mb-1">حالة الموقع ووضع الصيانة</h3>
+                            <p class="text-muted small mb-0">تحكم في تشغيل الموقع للزوار أو إيقافه مؤقتاً وعرض صفحة الصيانة.</p>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="badge @(content.IsWebsiteEnabled ? "bg-success" : "bg-warning text-dark") fs-6 px-3 py-2">
+                            @(content.IsWebsiteEnabled ? "الموقع مفعّل (يعمل)" : "وضع الصيانة (متوقف)")
+                        </span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-check form-switch fs-5">
+                        <input class="form-check-input" type="checkbox" role="switch" id="isWebsiteEnabled" name="isWebsiteEnabled" value="true" @(content.IsWebsiteEnabled ? "checked" : "")>
+                        <input type="hidden" name="isWebsiteEnabled" value="false">
+                        <label class="form-check-label fs-6 fw-bold" for="isWebsiteEnabled">
+                            الموقع متاح للزوار (إلغاء التحديد يحوّل الزوار إلى صفحة الصيانة فوراً)
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <label class="form-label fw-bold" for="maintenanceMessage">رسالة الصيانة (تظهر للزوار عند إيقاف الموقع)</label>
+                    <textarea class="form-control" id="maintenanceMessage" name="maintenanceMessage" rows="2" placeholder="الموقع يخضع حالياً لبعض أعمال الصيانة والتحسينات، وسنعود للعمل في أقرب وقت. شكراً لتفهمكم!">@content.MaintenanceMessage</textarea>
+                    <small class="text-muted">في حال ترك هذا الحقل فارغاً، ستظهر الرسالة الافتراضية للزوار.</small>
+                </div>
+            </div>
+
+            <!-- Hero Title & Highlight -->
+            <div class="panel editor-panel managed-wide mb-4 p-4 bg-white rounded shadow-sm border">
+                <div class="editor-heading d-flex align-items-center gap-3 mb-3">
+                    <span class="editor-icon fs-3 text-warning"><i class="bi bi-stars"></i></span>
+                    <div>
+                        <h3 class="h5 mb-1">بداية الموقع (قسم الهيدر)</h3>
+                        <p class="text-muted small mb-0">القسم الرئيسي الذي يظهر أولًا للزائر.</p>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold" for="heroTitle">العنوان الرئيسي</label>
+                    <input class="form-control" id="heroTitle" name="heroTitle" value="@content.HeroTitle" placeholder="مثال: أقوى أعشاب تخسيس في" required>
+                </div>
+                <div>
+                    <label class="form-label fw-bold" for="heroHighlight">الجزء المميز</label>
+                    <input class="form-control" id="heroHighlight" name="heroHighlight" value="@content.HeroHighlight" placeholder="مثال: مصر والوطن العربي" required>
+                </div>
+            </div>
+
+            <!-- CTA Section -->
+            <div class="panel editor-panel managed-wide mb-4 p-4 bg-white rounded shadow-sm border">
+                <div class="editor-heading d-flex align-items-center gap-3 mb-3">
+                    <span class="editor-icon fs-3 text-primary"><i class="bi bi-megaphone"></i></span>
+                    <div>
+                        <h3 class="h5 mb-1">قسم الطلب النهائي (CTA)</h3>
+                        <p class="text-muted small mb-0">قسم التشجيع على الطلب الموجود في آخر الصفحة.</p>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold" for="ctaEyebrow">النص الصغير (Eyebrow)</label>
+                    <input class="form-control" id="ctaEyebrow" name="ctaEyebrow" value="@content.CtaEyebrow" placeholder="مثال: ابدأ رحلتك الآن" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold" for="ctaTitle">العنوان</label>
+                    <input class="form-control" id="ctaTitle" name="ctaTitle" value="@content.CtaTitle" placeholder="مثال: اطلب عبوتك اليوم واستمتع بجسم صحي" required>
+                </div>
+                <div>
+                    <label class="form-label fw-bold" for="ctaDescription">الوصف</label>
+                    <textarea class="form-control" id="ctaDescription" name="ctaDescription" rows="3" placeholder="اكتب وصفاً موجزاً يشجع العميل على إتمام الطلب..." required>@content.CtaDescription</textarea>
+                </div>
+            </div>
+
+            <!-- WhatsApp -->
+            <div class="panel editor-panel managed-wide mb-4 p-4 bg-white rounded shadow-sm border">
+                <div class="editor-heading d-flex align-items-center gap-3 mb-3">
+                    <span class="editor-icon fs-3 text-success"><i class="bi bi-whatsapp"></i></span>
+                    <div>
+                        <h3 class="h5 mb-1">رقم واتساب</h3>
+                        <p class="text-muted small mb-0">يظهر في الفوتر والزر العائم للتواصل الفوري.</p>
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label fw-bold" for="whatsappDisplay">رقم واتساب</label>
+                    <input class="form-control ltr text-start" id="whatsappDisplay" name="whatsAppNumber" type="tel" value="@content.WhatsAppNumber" placeholder="201000000000" required>
+                </div>
+            </div>
+
+            <button class="btn btn-primary px-4 py-2 mb-5" type="submit">
+                <i class="bi bi-check2 me-1"></i> حفظ البيانات الأساسية
+            </button>
+        </div>
+    </form>
+
+    <!-- Shipping Fees Management Table -->
+    <div class="panel managed-wide p-4 bg-white rounded shadow-sm border">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+            <div>
+                <h3 class="h5 mb-1">مصاريف الشحن لكل المحافظات (27 محافظة)</h3>
+                <p class="text-muted small mb-0">عدّل السعر أو أوقف التوصيل لأي محافظة.</p>
+            </div>
+            <button class="btn btn-success" type="button" id="btnSaveShipping">
+                <i class="bi bi-check2"></i> حفظ أسعار الشحن
+            </button>
+        </div>
+
+        <!-- Client-Side Search Bar -->
+        <div class="mb-3">
+            <div class="input-group">
+                <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" id="govSearchInput" class="form-control border-start-0" placeholder="ابحث باسم المحافظة (مثال: القاهرة، الإسكندرية، أسوان)..." autocomplete="off">
+                <button class="btn btn-outline-secondary" type="button" id="btnGovClearSearch" title="مسح البحث">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table data-table shipping-table align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>المحافظة</th>
+                        <th class="col-shipping-cost">سعر الشحن (ج.م)</th>
+                        <th class="col-shipping-active text-center">متاح للتوصيل</th>
+                    </tr>
+                </thead>
+                <tbody id="shippingBody">
+                    @foreach (var gov in governorates)
+                    {
+                        <tr class="gov-row" data-gov-id="@gov.Id" data-key="@gov.GovernorateKey" data-name="@gov.GovernorateName">
+                            <td><strong>@gov.GovernorateName</strong></td>
+                            <td>
+                                <input class="form-control form-control-sm shipping-cost-input" type="number" min="0" value="@gov.ShippingCost.ToString("0.##")">
+                            </td>
+                            <td class="text-center">
+                                <input class="form-check-input shipping-active-input" type="checkbox" @(gov.IsActive ? "checked" : "")>
+                            </td>
+                        </tr>
+                    }
+                    <tr id="noGovMatchRow" class="d-none">
+                        <td colspan="3" class="text-center py-4 text-muted">
+                            <i class="bi bi-geo-alt-fill text-muted fs-4 d-block mb-1"></i>
+                            لا توجد محافظات مطابقة للبحث
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Arabic Text Normalization Helper
+            function normalizeArabic(text) {
+                if (!text) return "";
+                return text
+                    .trim()
+                    .toLowerCase()
+                    .replace(/[أإآ]/g, "ا")
+                    .replace(/ة/g, "ه")
+                    .replace(/ى/g, "ي")
+                    .replace(/[\u064B-\u065F]/g, ""); // Remove Arabic diacritics
+            }
+
+            // Client-Side Governorates Search (No HTTP Requests)
+            const searchInput = document.getElementById("govSearchInput");
+            const clearBtn = document.getElementById("btnGovClearSearch");
+            const govRows = document.querySelectorAll("#shippingBody tr.gov-row");
+            const noMatchRow = document.getElementById("noGovMatchRow");
+
+            // Cache governorate elements & normalized names locally in a client-side state
+            const govItems = Array.from(govRows).map(row => ({
+                element: row,
+                name: row.getAttribute("data-name") || "",
+                normalizedName: normalizeArabic(row.getAttribute("data-name") || "")
+            }));
+
+            function filterGovernorates() {
+                const query = normalizeArabic(searchInput ? searchInput.value : "");
+                let matchCount = 0;
+
+                govItems.forEach(item => {
+                    const matches = !query || item.normalizedName.includes(query);
+                    item.element.classList.toggle("d-none", !matches);
+                    if (matches) matchCount++;
+                });
+
+                if (noMatchRow) {
+                    noMatchRow.classList.toggle("d-none", matchCount !== 0);
+                }
+            }
+
+            searchInput?.addEventListener("input", filterGovernorates);
+            clearBtn?.addEventListener("click", () => {
+                if (searchInput) {
+                    searchInput.value = "";
+                    filterGovernorates();
+                    searchInput.focus();
+                }
+            });
+
+            // Save Shipping Table (persists all 27 governorates)
+            document.getElementById("btnSaveShipping")?.addEventListener("click", async function () {
+                this.disabled = true;
+                this.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> جاري الحفظ...`;
+
+                const rows = document.querySelectorAll("#shippingBody tr.gov-row");
+                const payload = Array.from(rows).map(row => ({
+                    id: parseInt(row.getAttribute("data-gov-id")),
+                    governorateKey: row.getAttribute("data-key"),
+                    shippingCost: parseFloat(row.querySelector(".shipping-cost-input").value) || 0,
+                    isActive: row.querySelector(".shipping-active-input").checked
+                }));
+
+                try {
+                    const res = await fetch("/dashboard/shipping/update", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await res.json();
+                    alert(data.message || (data.success ? "تم الحفظ بنجاح" : "حدث خطأ"));
+                } catch {
+                    alert("تعذر الاتصال بالخادم");
+                } finally {
+                    this.disabled = false;
+                    this.innerHTML = `<i class="bi bi-check2"></i> حفظ أسعار الشحن`;
+                }
+            });
+        });
+    </script>
+}

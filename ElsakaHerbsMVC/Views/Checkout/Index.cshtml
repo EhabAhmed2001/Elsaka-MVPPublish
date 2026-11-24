@@ -1,0 +1,336 @@
+@using ElsakaHerbs.ViewModels.Shipping
+@{
+    ViewData["Title"] = "إتمام الطلب";
+    ViewData["BodyClass"] = "checkout-page";
+    var governorates = ViewBag.Governorates as List<GovernorateShippingViewModel> ?? new List<GovernorateShippingViewModel>();
+}
+
+<div class="container checkout-wrap my-5">
+    <div class="section-heading text-center">
+        <span class="eyebrow">خطوة أخيرة</span>
+        <h2>إتمام <span>الطلب</span></h2>
+        <p>راجع طلبك وأدخل بيانات التوصيل لإتمام الشراء بالدفع عند الاستلام.</p>
+    </div>
+
+    <div class="checkout-layout">
+        <!-- Order Summary Column -->
+        <div class="checkout-summary-column">
+            <section class="checkout-panel">
+                <h3><i class="bi bi-bag-check"></i> ملخص الطلب</h3>
+
+                <div id="checkoutSummary"></div>
+
+                <div class="cart-total-row checkout-cost-row">
+                    <span>إجمالي المنتجات</span>
+                    <strong id="checkoutSubtotal">0 ج.م</strong>
+                </div>
+
+                <div class="cart-total-row checkout-cost-row">
+                    <span>مصاريف الشحن</span>
+                    <strong id="checkoutShipping">اختار المحافظة</strong>
+                </div>
+
+                <div class="cart-total-row checkout-total">
+                    <span>الإجمالي النهائي</span>
+                    <strong id="checkoutTotal">0 ج.م</strong>
+                </div>
+            </section>
+        </div>
+
+        <!-- Delivery Details Column -->
+        <div class="checkout-form-column">
+            <section class="checkout-panel">
+                <h3><i class="bi bi-person-lines-fill"></i> بيانات التوصيل</h3>
+
+                <form id="checkoutForm" class="checkout-form">
+                    <!-- Customer Names -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="customerFirstName">الاسم الأول <span class="text-danger">*</span></label>
+                            <input class="form-control" id="customerFirstName" name="customerFirstName" type="text" required placeholder="اكتب الاسم الأول">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="customerLastName">اسم العائلة <span class="text-danger">*</span></label>
+                            <input class="form-control" id="customerLastName" name="customerLastName" type="text" required placeholder="اكتب اسم العائلة">
+                        </div>
+                    </div>
+
+                    <!-- Phone Number -->
+                    <div class="mb-3">
+                        <label class="form-label" for="customerPhone">رقم الهاتف <span class="text-danger">*</span></label>
+                        <input class="form-control" id="customerPhone" name="customerPhone" type="tel" required pattern="01[0125][0-9]{8}"
+                               maxlength="11" minlength="11" placeholder="01xxxxxxxxx" title="أدخل رقم هاتف مصري صحيح مكون من 11 رقم">
+                    </div>
+
+                    <!-- Governorate Dropdown -->
+                    <div class="mb-3">
+                        <label class="form-label" for="customerGovernorate">المحافظة <span class="text-danger">*</span></label>
+                        <select class="form-select" id="customerGovernorate" name="governorateShippingId" required>
+                            <option value="">اختار المحافظة...</option>
+                            @foreach (var gov in governorates)
+                            {
+                                <option value="@gov.Id" data-cost="@gov.ShippingCost">@gov.GovernorateName (@gov.ShippingCost.ToString("N0") ج.م)</option>
+                            }
+                        </select>
+                        <small class="shipping-note text-muted d-block mt-1" id="shippingMessage">
+                            اختار المحافظة لحساب مصاريف الشحن.
+                        </small>
+                    </div>
+
+                    <!-- Detailed Address -->
+                    <div class="mb-3">
+                        <label class="form-label" for="customerAddress">العنوان بالتفصيل <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="customerAddress" name="address" rows="3" required placeholder="المدينة، المنطقة، الشارع، رقم العقار، الدور"></textarea>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mb-3">
+                        <label class="form-label" for="customerNotes">ملاحظات إضافية (اختياري)</label>
+                        <textarea class="form-control" id="customerNotes" name="notes" rows="2" placeholder="أي تفاصيل تساعد مندوب التوصيل"></textarea>
+                    </div>
+
+                    <!-- Cash on Delivery Banner -->
+                    <div class="cod-option d-flex align-items-center gap-3 p-3 rounded mb-3">
+                        <i class="bi bi-cash-coin fs-3 text-success"></i>
+                        <div>
+                            <strong>الدفع عند الاستلام</strong>
+                            <small class="d-block text-muted">ستدفع قيمة الطلب نقدًا عند وصول الشحنة.</small>
+                        </div>
+                        <i class="bi bi-check-circle-fill text-success ms-auto fs-4"></i>
+                    </div>
+
+                    <!-- Submit Notice -->
+                    <div id="checkoutNotice" class="alert d-none mb-3"></div>
+
+                    <button class="btn btn-main w-100 py-3" id="submitOrderBtn" type="submit">
+                        <span>تأكيد الطلب الآن</span>
+                        <i class="bi bi-arrow-left"></i>
+                    </button>
+                </form>
+            </section>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (() => {
+            "use strict";
+            const KEY = "shopping_cart";
+            let catalog = {};
+            let cart = [];
+            let shippingCost = 0;
+
+            const format = v => `${new Intl.NumberFormat("en-US").format(v)} ج.م`;
+            const params = new URLSearchParams(location.search);
+            const directPackageId = params.get("package");
+
+            const summaryEl = document.getElementById("checkoutSummary");
+            const subtotalEl = document.getElementById("checkoutSubtotal");
+            const shippingEl = document.getElementById("checkoutShipping");
+            const totalEl = document.getElementById("checkoutTotal");
+            const govSelect = document.getElementById("customerGovernorate");
+            const shippingMsg = document.getElementById("shippingMessage");
+            const form = document.getElementById("checkoutForm");
+            const submitBtn = document.getElementById("submitOrderBtn");
+            const noticeEl = document.getElementById("checkoutNotice");
+
+            async function init() {
+                try {
+                    const res = await fetch("/api/catalog");
+                    catalog = await res.json();
+                } catch (e) {
+                    console.error("Failed to fetch catalog", e);
+                }
+
+                if (directPackageId && catalog[directPackageId]) {
+                    try {
+                        const raw = JSON.parse(localStorage.getItem(KEY) || "[]");
+                        const existing = raw.find(x => String(x.id) === String(directPackageId));
+                        const q = existing && existing.quantity > 0 ? existing.quantity : 1;
+                        cart = [{ id: directPackageId, quantity: q }];
+                        saveCart();
+                    } catch {
+                        cart = [{ id: directPackageId, quantity: 1 }];
+                    }
+                } else {
+                    try {
+                        const raw = JSON.parse(localStorage.getItem(KEY) || "[]");
+                        cart = raw.filter(item => item && catalog[item.id] && item.quantity > 0);
+                    } catch {
+                        cart = [];
+                    }
+                }
+
+                render();
+            }
+
+            function saveCart() {
+                try {
+                    localStorage.setItem(KEY, JSON.stringify(cart));
+                    const badge = document.getElementById("cartBadge");
+                    if (badge) {
+                        const count = cart.reduce((sum, item) => sum + (item.quantity || 0), 0);
+                        badge.textContent = count;
+                        badge.style.display = count === 0 ? "none" : "inline-flex";
+                    }
+                } catch (e) {
+                    console.error("Failed to save cart to localStorage", e);
+                }
+            }
+
+            function render() {
+                if (!cart.length) {
+                    summaryEl.innerHTML = `<div class="checkout-empty text-center py-4"><i class="bi bi-bag-x fs-1 text-muted"></i><p class="mt-2">سلتك فارغة. أضف باقة للمتابعة.</p><a class="btn btn-soft" href="/#packages">العودة للباقات</a></div>`;
+                    submitBtn.disabled = true;
+                    renderTotals();
+                    return;
+                }
+
+                summaryEl.innerHTML = cart.map(item => {
+                    const prod = catalog[item.id] || { name: "باقة", duration: "", price: 0, image: "" };
+                    return `<div class="checkout-line py-3 border-bottom" data-item-id="${item.id}">
+                        <!-- Product info and price row -->
+                        <div class="d-flex align-items-center justify-content-between gap-2 mb-2 w-100">
+                            <div class="d-flex align-items-center gap-2 checkout-prod-info flex-grow-1">
+                                ${prod.image ? `<img src="${prod.image}" alt="${prod.name}" class="rounded border p-1 flex-shrink-0 checkout-thumb-img">` : ''}
+                                <div class="checkout-prod-info">
+                                    <strong class="d-block text-dark text-truncate checkout-prod-name">${prod.name}</strong>
+                                    <small class="text-muted d-block checkout-prod-unit">${prod.duration ? prod.duration + ' · ' : ''}سعر الوحدة: ${format(prod.price)}</small>
+                                </div>
+                            </div>
+                            <div class="text-end flex-shrink-0 ps-2">
+                                <span class="d-block text-muted checkout-item-total-label">الإجمالي</span>
+                                <strong class="text-success checkout-item-total-price">${format(prod.price * item.quantity)}</strong>
+                            </div>
+                        </div>
+                        <!-- Controls row (Quantity stepper and Delete button) on a dedicated separate line -->
+                        <div class="checkout-actions-row d-flex align-items-center justify-content-between gap-2 pt-2 border-top border-light-subtle w-100">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="text-muted small text-nowrap">الكمية:</span>
+                                <div class="checkout-qty-stepper btn-group" role="group" aria-label="التحكم في الكمية">
+                                    <button type="button" class="btn btn-outline-secondary btn-qty-minus" data-id="${item.id}" aria-label="تقليل الكمية" ${item.quantity <= 1 ? 'disabled' : ''}>
+                                        <i class="bi bi-dash-lg"></i>
+                                    </button>
+                                    <span class="btn btn-light disabled text-dark fw-bold qty-val border">${item.quantity}</span>
+                                    <button type="button" class="btn btn-outline-secondary btn-qty-plus" data-id="${item.id}" aria-label="زيادة الكمية">
+                                        <i class="bi bi-plus-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline-danger btn-sm btn-remove-item d-inline-flex align-items-center gap-1" data-id="${item.id}">
+                                <i class="bi bi-trash"></i>
+                                <span>حذف</span>
+                            </button>
+                        </div>
+                    </div>`;
+                }).join("");
+
+                renderTotals();
+            }
+
+            // Quantity and Remove Event Delegation
+            summaryEl.addEventListener("click", (e) => {
+                const plusBtn = e.target.closest(".btn-qty-plus");
+                const minusBtn = e.target.closest(".btn-qty-minus");
+                const removeBtn = e.target.closest(".btn-remove-item");
+
+                if (plusBtn) {
+                    const id = plusBtn.getAttribute("data-id");
+                    const item = cart.find(x => String(x.id) === String(id));
+                    if (item) {
+                        item.quantity = (item.quantity || 1) + 1;
+                        saveCart();
+                        render();
+                    }
+                } else if (minusBtn) {
+                    const id = minusBtn.getAttribute("data-id");
+                    const item = cart.find(x => String(x.id) === String(id));
+                    if (item && item.quantity > 1) {
+                        item.quantity -= 1;
+                        saveCart();
+                        render();
+                    }
+                } else if (removeBtn) {
+                    const id = removeBtn.getAttribute("data-id");
+                    cart = cart.filter(x => String(x.id) !== String(id));
+                    saveCart();
+                    render();
+                }
+            });
+
+            function renderTotals() {
+                const subtotal = cart.reduce((sum, item) => sum + (catalog[item.id]?.price || 0) * item.quantity, 0);
+                subtotalEl.textContent = format(subtotal);
+
+                if (!govSelect.value) {
+                    shippingEl.textContent = "اختار المحافظة";
+                } else {
+                    shippingEl.textContent = format(shippingCost);
+                }
+
+                totalEl.textContent = format(subtotal + shippingCost);
+                submitBtn.disabled = !cart.length || !govSelect.value;
+            }
+
+            govSelect.addEventListener("change", () => {
+                const opt = govSelect.selectedOptions[0];
+                const cost = opt?.dataset.cost ? parseFloat(opt.dataset.cost) : 0;
+                shippingCost = cost;
+                if (govSelect.value) {
+                    shippingMsg.textContent = `مصاريف الشحن إلى ${opt.text}: ${format(cost)}`;
+                } else {
+                    shippingMsg.textContent = "اختار المحافظة لحساب مصاريف الشحن.";
+                }
+                renderTotals();
+            });
+
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                if (!cart.length || !form.reportValidity()) return;
+
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status"></span> جاري تأكيد الطلب...`;
+
+                const payload = {
+                    customerFirstName: document.getElementById("customerFirstName").value.trim(),
+                    customerLastName: document.getElementById("customerLastName").value.trim(),
+                    customerPhone: document.getElementById("customerPhone").value.trim(),
+                    governorateShippingId: parseInt(govSelect.value),
+                    address: document.getElementById("customerAddress").value.trim(),
+                    notes: document.getElementById("customerNotes").value.trim(),
+                    items: cart.map(item => ({ packageId: parseInt(item.id), quantity: item.quantity }))
+                };
+
+                try {
+                    const response = await fetch("/Checkout/ProcessOrder", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        // Clear client cart on successful order
+                        localStorage.removeItem(KEY);
+                        window.location.href = data.redirectUrl;
+                    } else {
+                        noticeEl.className = "alert alert-danger mb-3";
+                        noticeEl.textContent = data.message || "حدث خطأ أثناء حفظ الطلب";
+                        noticeEl.classList.remove("d-none");
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = `<span>تأكيد الطلب الآن</span> <i class="bi bi-arrow-left"></i>`;
+                    }
+                } catch (err) {
+                    noticeEl.className = "alert alert-danger mb-3";
+                    noticeEl.textContent = "تعذر الاتصال بالخادم. يرجى المحاولة مرة أخرى.";
+                    noticeEl.classList.remove("d-none");
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = `<span>تأكيد الطلب الآن</span> <i class="bi bi-arrow-left"></i>`;
+                }
+            });
+
+            init();
+        })();
+    </script>
+}

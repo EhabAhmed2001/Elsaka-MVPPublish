@@ -1,0 +1,494 @@
+@using ElsakaHerbs.ViewModels.Packages
+@{
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "العبوات";
+    var packages = ViewBag.Packages as List<PackageViewModel> ?? new();
+}
+
+
+<section class="page-section active" id="page-packages">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>العبوات</h2>
+            <p class="text-muted small mb-0">إضافة وتعديل وحذف العبوات المعروضة في المتجر مع الفرز والبحث.</p>
+        </div>
+        <button class="btn btn-success" id="btnAddPackage" type="button">
+            <i class="bi bi-plus-lg me-1"></i> إضافة عبوة جديدة
+        </button>
+    </div>
+
+    <!-- Search & Filters Toolbar -->
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+        <div class="card-body p-3 p-md-4">
+            <form method="get" asp-controller="Dashboard" asp-action="Packages" class="row g-3 align-items-end" id="packagesFilterForm">
+                <div class="col-12 col-md-5">
+                    <label class="form-label small fw-bold" for="filterPkgSearch">اسم العبوة</label>
+                    <input type="text" class="form-control form-control-sm" id="filterPkgSearch" name="search" value="@ViewBag.Search" placeholder="ابحث باسم العبوة...">
+                </div>
+                <div class="col-12 col-md-4">
+                    <label class="form-label small fw-bold" for="filterPkgStatus">حالة العبوة</label>
+                    <select class="form-select form-select-sm" id="filterPkgStatus" name="status">
+                        <option value="all" selected="@(string.Equals(ViewBag.Status, "all", StringComparison.OrdinalIgnoreCase) ? "selected" : null)">الكل (جميع العبوات)</option>
+                        <option value="active" selected="@(string.Equals(ViewBag.Status, "active", StringComparison.OrdinalIgnoreCase) ? "selected" : null)">نشطة فقط</option>
+                        <option value="inactive" selected="@(string.Equals(ViewBag.Status, "inactive", StringComparison.OrdinalIgnoreCase) ? "selected" : null)">معطلة فقط</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-sm btn-primary flex-grow-1 d-flex align-items-center justify-content-center gap-1">
+                        <i class="bi bi-search"></i>
+                        <span>بحث</span>
+                    </button>
+                    <a asp-controller="Dashboard" asp-action="Packages" class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center gap-1" title="إعادة ضبط الفلاتر">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>العبوة</th>
+                        <th>المدة</th>
+                        <th>البكتات</th>
+                        <th>السعر</th>
+                        <th>الوزن</th>
+                        <th>عدد مرات الشراء</th>
+                        <th>الحالة</th>
+                        <th class="text-center">الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (packages.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="bi bi-box-seam fs-2 d-block mb-2 text-muted"></i>
+                                <p class="mb-0">لا توجد عبوات مطابقة لمعايير البحث الحالية.</p>
+                            </td>
+                        </tr>
+                    }
+                    @foreach (var pkg in packages)
+                    {
+                        <tr id="package-row-@pkg.Id">
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    <img src="@pkg.DefaultImageUrl" alt="@pkg.Name" class="package-thumb-img" style="width: 45px; height: 45px; object-fit: cover; border-radius: 8px;">
+                                    <div>
+                                        <strong>@pkg.Name</strong>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>@pkg.DurationDays يوم</td>
+                            <td>@pkg.PacketsCount</td>
+                            <td><strong class="text-success">@pkg.Price.ToString("N0") ج.م</strong></td>
+                            <td>@(pkg.WeightGrams > 0 ? $"{pkg.WeightGrams} جم" : "—")</td>
+                            <td>@pkg.PurchaseCount</td>
+                            <td>
+                                <span class="badge @(pkg.IsActive ? "bg-success" : "bg-secondary")">
+                                    @(pkg.IsActive ? "نشطة" : "معطلة")
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-outline-primary btn-edit-package" data-id="@pkg.Id" title="تعديل">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger btn-delete-package ms-1" data-id="@pkg.Id" title="حذف نهائي">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- Package Modal (Add / Edit) -->
+<div class="modal fade" id="packageModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="packageModalTitle">إضافة عبوة جديدة</h5>
+                <button class="btn-close me-0 ms-auto" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="packageForm" enctype="multipart/form-data">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="pkgId" name="id">
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="pkgName">اسم العبوة <span class="text-danger">*</span></label>
+                            <input class="form-control" id="pkgName" name="name" required placeholder="مثال: باقة الشهرين">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label" for="pkgDays">المدة (بالأيام) <span class="text-danger">*</span></label>
+                            <input class="form-control" id="pkgDays" name="durationDays" type="number" min="1" placeholder="30" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label" for="pkgPackets">عدد البكتات <span class="text-danger">*</span></label>
+                            <input class="form-control" id="pkgPackets" name="packetsCount" type="number" min="1" placeholder="2" required>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label" for="pkgPriceBefore">السعر قبل (اختياري)</label>
+                            <input class="form-control" id="pkgPriceBefore" name="originalPrice" type="number" min="0" placeholder="قبل الخصم">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label" for="pkgPriceAfter">السعر النهائي <span class="text-danger">*</span></label>
+                            <input class="form-control" id="pkgPriceAfter" name="price" type="number" min="0" required placeholder="سعر البيع">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label" for="pkgWeight">الوزن بالجرام</label>
+                            <input class="form-control" id="pkgWeight" name="weightGrams" type="number" min="0" placeholder="500">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label" for="pkgPurchases">عدد مرات الشراء</label>
+                            <input class="form-control" id="pkgPurchases" name="purchaseCount" type="number" min="0" placeholder="0">
+                            <small class="hint-text text-muted d-none" id="pkgPurchasesHint">لا يمكن تعديل مرات الشراء بعد إنشاء العبوة</small>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label" for="pkgDescription">وصف العبوة <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="pkgDescription" name="description" rows="3" required placeholder="وصف كامل لمكونات ومميزات العبوة"></textarea>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label" for="pkgImages">صور العبوة (يمكنك اختيار عدة صور)</label>
+                            <input class="form-control" id="pkgImages" name="newImages" type="file" multiple accept="image/*">
+                            <small class="text-muted d-block mt-1">يمكنك رفع صور متعددة. الصورة الأولى أو المحددة ستكون الافتراضية.</small>
+                            <div class="image-editor mt-2 d-flex flex-wrap gap-2" id="packageImageEditor"></div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" id="pkgActive" name="isActive" checked>
+                                <label class="form-check-label" for="pkgActive">نشطة وتظهر في الموقع للعملاء</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-success" id="btnSavePackage">حفظ العبوة</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const pkgModal = new bootstrap.Modal(document.getElementById("packageModal"));
+            const imageEditor = document.getElementById("packageImageEditor");
+            const imagesInput = document.getElementById("pkgImages");
+
+            // Client-side image state
+            let currentExistingImages = []; // [{ id, url, isDefault, isDeleted }]
+            let currentNewFiles = [];        // [{ file, tempId, dataUrl, isDefault }]
+            let tempCounter = 1;
+
+            function renderImageEditor() {
+                imageEditor.innerHTML = "";
+
+                // Check default integrity: ensure exactly one visible image is default if any visible images exist
+                const visibleExisting = currentExistingImages.filter(i => !i.isDeleted);
+                const hasExistingDefault = visibleExisting.some(i => i.isDefault);
+                const hasNewDefault = currentNewFiles.some(i => i.isDefault);
+
+                if (!hasExistingDefault && !hasNewDefault) {
+                    if (visibleExisting.length > 0) {
+                        visibleExisting[0].isDefault = true;
+                    } else if (currentNewFiles.length > 0) {
+                        currentNewFiles[0].isDefault = true;
+                    }
+                }
+
+                // 1. Render existing saved images
+                visibleExisting.forEach(img => {
+                    const box = document.createElement("div");
+                    box.className = "image-box border rounded p-2 text-center position-relative bg-white shadow-sm image-box-wrapper";
+                    box.style.width = "105px";
+                    box.innerHTML = `
+                        <button type="button" class="btn btn-danger btn-sm position-absolute top-0 start-0 m-1 p-0 rounded-circle d-flex align-items-center justify-content-center btn-remove-img"
+                                style="width: 22px; height: 22px; font-size: 11px; z-index: 2;"
+                                data-type="existing" data-id="${img.id}" title="حذف هذه الصورة">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                        <img src="${img.url}" class="image-box-img" style="width: 100%; height: 75px; object-fit: cover; border-radius: 4px;">
+                        <label class="d-block mt-1 small image-box-radio-label" style="font-size: 11px; cursor: pointer;">
+                            <input type="radio" name="defaultImageRadio" value="existing_${img.id}" ${img.isDefault ? "checked" : ""}> افتراضية
+                        </label>
+                    `;
+                    imageEditor.appendChild(box);
+                });
+
+                // 2. Render newly selected images
+                currentNewFiles.forEach(item => {
+                    const box = document.createElement("div");
+                    box.className = "image-box border border-success-subtle rounded p-2 text-center position-relative bg-light shadow-sm image-box-wrapper";
+                    box.style.width = "105px";
+                    box.innerHTML = `
+                        <button type="button" class="btn btn-danger btn-sm position-absolute top-0 start-0 m-1 p-0 rounded-circle d-flex align-items-center justify-content-center btn-remove-img"
+                                style="width: 22px; height: 22px; font-size: 11px; z-index: 2;"
+                                data-type="new" data-tempid="${item.tempId}" title="إلغاء هذه الصورة">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                        <span class="badge bg-success position-absolute top-0 end-0 m-1 badge-new-img" style="font-size: 9px;">جديدة</span>
+                        <img src="${item.dataUrl}" class="image-box-img" style="width: 100%; height: 75px; object-fit: cover; border-radius: 4px;">
+                        <label class="d-block mt-1 small image-box-radio-label" style="font-size: 11px; cursor: pointer;">
+                            <input type="radio" name="defaultImageRadio" value="new_${item.tempId}" ${item.isDefault ? "checked" : ""}> افتراضية
+                        </label>
+                    `;
+                    imageEditor.appendChild(box);
+                });
+
+                // Attach click handlers to X buttons
+                imageEditor.querySelectorAll(".btn-remove-img").forEach(btn => {
+                    btn.addEventListener("click", function (e) {
+                        e.stopPropagation();
+                        const type = this.getAttribute("data-type");
+                        if (type === "existing") {
+                            const id = parseInt(this.getAttribute("data-id"));
+                            const img = currentExistingImages.find(x => x.id === id);
+                            if (img) {
+                                const wasDefault = img.isDefault;
+                                img.isDeleted = true;
+                                img.isDefault = false;
+                                if (wasDefault) {
+                                    // Auto assign first remaining visible image
+                                    const next = currentExistingImages.find(x => !x.isDeleted) || currentNewFiles[0];
+                                    if (next) next.isDefault = true;
+                                }
+                            }
+                        } else if (type === "new") {
+                            const tempId = this.getAttribute("data-tempid");
+                            const index = currentNewFiles.findIndex(x => x.tempId === tempId);
+                            if (index !== -1) {
+                                const wasDefault = currentNewFiles[index].isDefault;
+                                currentNewFiles.splice(index, 1);
+                                if (wasDefault) {
+                                    // Auto assign first remaining visible image
+                                    const next = currentExistingImages.find(x => !x.isDeleted) || currentNewFiles[0];
+                                    if (next) next.isDefault = true;
+                                }
+                            }
+                        }
+                        renderImageEditor();
+                    });
+                });
+
+                // Attach change handlers to radio buttons
+                imageEditor.querySelectorAll("input[name='defaultImageRadio']").forEach(radio => {
+                    radio.addEventListener("change", function () {
+                        const val = this.value;
+                        // Reset all
+                        currentExistingImages.forEach(x => x.isDefault = false);
+                        currentNewFiles.forEach(x => x.isDefault = false);
+
+                        if (val.startsWith("existing_")) {
+                            const id = parseInt(val.replace("existing_", ""));
+                            const target = currentExistingImages.find(x => x.id === id);
+                            if (target) target.isDefault = true;
+                        } else if (val.startsWith("new_")) {
+                            const tempId = val.replace("new_", "");
+                            const target = currentNewFiles.find(x => x.tempId === tempId);
+                            if (target) target.isDefault = true;
+                        }
+                    });
+                });
+            }
+
+            // File input change: append newly selected images (does NOT overwrite existing)
+            imagesInput?.addEventListener("change", function () {
+                if (!this.files.length) return;
+
+                const selectedFiles = Array.from(this.files);
+                selectedFiles.forEach(file => {
+                    const reader = new FileReader();
+                    const thisTempId = "temp_" + (tempCounter++);
+                    reader.onload = function (e) {
+                        currentNewFiles.push({
+                            file: file,
+                            tempId: thisTempId,
+                            dataUrl: e.target.result,
+                            isDefault: false
+                        });
+                        renderImageEditor();
+                    };
+                    reader.readAsDataURL(file);
+                });
+
+                // Clear input value so selecting the same file again or adding more files works seamlessly
+                this.value = "";
+            });
+
+            // Add Package Button
+            document.getElementById("btnAddPackage")?.addEventListener("click", function () {
+                document.getElementById("packageForm").reset();
+                document.getElementById("pkgId").value = "";
+                currentExistingImages = [];
+                currentNewFiles = [];
+                imageEditor.innerHTML = "";
+                document.getElementById("packageModalTitle").textContent = "إضافة عبوة جديدة";
+
+                // PurchaseCount: enabled when creating package
+                const purchasesInput = document.getElementById("pkgPurchases");
+                if (purchasesInput) {
+                    purchasesInput.disabled = false;
+                    purchasesInput.value = "";
+                    purchasesInput.classList.remove("bg-light", "text-muted");
+                    purchasesInput.style.cursor = "";
+                    purchasesInput.style.opacity = "";
+                }
+                document.getElementById("pkgPurchasesHint")?.classList.add("d-none");
+
+                pkgModal.show();
+            });
+
+            // Edit Package
+            document.querySelectorAll(".btn-edit-package").forEach(btn => {
+                btn.addEventListener("click", async function () {
+                    const id = this.getAttribute("data-id");
+                    try {
+                        const res = await fetch(`/dashboard/packages/get/${id}`);
+                        const data = await res.json();
+                        if (data.success && data.package) {
+                            const p = data.package;
+                            document.getElementById("pkgId").value = p.id;
+                            document.getElementById("pkgName").value = p.name;
+                            document.getElementById("pkgDays").value = p.durationDays;
+                            document.getElementById("pkgPackets").value = p.packetsCount;
+                            document.getElementById("pkgPriceBefore").value = p.originalPrice || "";
+                            document.getElementById("pkgPriceAfter").value = p.price;
+                            document.getElementById("pkgWeight").value = p.weightGrams;
+
+                            // PurchaseCount: dimmed and disabled in edit package (cannot be edited)
+                            const purchasesInput = document.getElementById("pkgPurchases");
+                            if (purchasesInput) {
+                                purchasesInput.value = p.purchaseCount;
+                                purchasesInput.disabled = true;
+                                purchasesInput.classList.add("bg-light", "text-muted");
+                                purchasesInput.style.cursor = "not-allowed";
+                                purchasesInput.style.opacity = "0.65";
+                            }
+                            document.getElementById("pkgPurchasesHint")?.classList.remove("d-none");
+
+                            document.getElementById("pkgDescription").value = p.description;
+                            document.getElementById("pkgActive").checked = p.isActive;
+                            document.getElementById("packageModalTitle").textContent = "تعديل العبوة: " + p.name;
+
+                            // Load existing images state
+                            currentExistingImages = (p.images || []).map(img => ({
+                                id: img.id,
+                                url: img.imageUrl,
+                                isDefault: img.isDefault,
+                                isDeleted: false
+                            }));
+                            currentNewFiles = [];
+
+                            renderImageEditor();
+                            pkgModal.show();
+                        }
+                    } catch {
+                        alert("تعذر جلب بيانات العبوة");
+                    }
+                });
+            });
+
+            // Save Package Form (Add or Edit)
+            document.getElementById("packageForm")?.addEventListener("submit", async function (e) {
+                e.preventDefault();
+
+                // Mandatory Validation: At least one image required (Requirement 5.D)
+                const totalActiveImages = currentExistingImages.filter(i => !i.isDeleted).length + currentNewFiles.length;
+                if (totalActiveImages < 1) {
+                    alert("يجب أن تحتوي العبوة على صورة واحدة على الأقل.");
+                    return;
+                }
+
+                const saveBtn = document.getElementById("btnSavePackage");
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> جاري الحفظ...`;
+
+                const formData = new FormData(this);
+                formData.set("isActive", document.getElementById("pkgActive").checked);
+
+                // Pass purchaseCount even if disabled in the form
+                const purchasesVal = document.getElementById("pkgPurchases")?.value;
+                if (purchasesVal !== undefined && purchasesVal !== "") {
+                    formData.set("purchaseCount", purchasesVal);
+                }
+
+                // Remove native newImages field from input and append our tracked files
+                formData.delete("newImages");
+                currentNewFiles.forEach(item => {
+                    formData.append("newImages", item.file);
+                });
+
+                // Append deleted existing image IDs
+                currentExistingImages.filter(i => i.isDeleted).forEach(img => {
+                    formData.append("deletedImageIds", img.id);
+                });
+
+                // Default image identification
+                const defaultExisting = currentExistingImages.find(i => !i.isDeleted && i.isDefault);
+                const defaultNew = currentNewFiles.find(i => i.isDefault);
+
+                if (defaultExisting) {
+                    formData.set("defaultExistingImageId", defaultExisting.id);
+                } else if (defaultNew) {
+                    const newIndex = currentNewFiles.indexOf(defaultNew);
+                    formData.set("defaultNewImageIndex", newIndex >= 0 ? newIndex : 0);
+                } else if (currentExistingImages.some(i => !i.isDeleted)) {
+                    formData.set("defaultExistingImageId", currentExistingImages.find(i => !i.isDeleted).id);
+                } else if (currentNewFiles.length > 0) {
+                    formData.set("defaultNewImageIndex", 0);
+                }
+
+                try {
+                    const res = await fetch("/dashboard/packages/save", {
+                        method: "POST",
+                        body: formData
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert(data.message || "حدث خطأ");
+                    }
+                } catch {
+                    alert("تعذر الاتصال بالخادم");
+                } finally {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = "حفظ العبوة";
+                }
+            });
+
+            // Delete Package
+            document.querySelectorAll(".btn-delete-package").forEach(btn => {
+                btn.addEventListener("click", async function () {
+                    if (!confirm("هل أنت متأكد من الحذف النهائي لهذه العبوة وصورها؟")) return;
+                    const id = this.getAttribute("data-id");
+                    try {
+                        const res = await fetch(`/dashboard/packages/delete/${id}`, { method: "POST" });
+                        const data = await res.json();
+                        if (data.success) {
+                            document.getElementById("package-row-" + id)?.remove();
+                        } else {
+                            alert(data.message || "تعذر الحذف");
+                        }
+                    } catch {
+                        alert("تعذر الاتصال بالخادم");
+                    }
+                });
+            });
+        });
+    </script>
+}

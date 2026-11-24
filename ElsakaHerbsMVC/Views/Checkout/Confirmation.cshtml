@@ -1,0 +1,113 @@
+@model ElsakaHerbs.ViewModels.Orders.OrderDetailViewModel
+@{
+    ViewData["Title"] = $"تم تأكيد الطلب #{Model.OrderNumber}";
+    ViewData["BodyClass"] = "checkout-page";
+}
+
+<div class="container my-5 confirmation-container">
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+        <div class="card-header bg-success text-white text-center py-4">
+            <i class="bi bi-check-circle-fill display-3 d-block mb-2"></i>
+            <h2 class="h3 mb-1">تم استلام طلبك بنجاح!</h2>
+            <p class="mb-0 text-white-50">شكراً لثقتك بنا. سيتم التواصل معك هاتفياً لتأكيد الشحن.</p>
+        </div>
+
+        <div class="card-body p-4 p-md-5">
+            <!-- Order Reference -->
+            <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded-3 mb-4">
+                <div>
+                    <span class="text-muted d-block small">رقم الطلب</span>
+                    <strong class="fs-4 text-primary">@Model.OrderNumber</strong>
+                </div>
+                <div class="text-end">
+                    <span class="text-muted d-block small">تاريخ الطلب</span>
+                    <strong>@Model.CreatedAt.ToLocalTime().ToString("yyyy/MM/dd - hh:mm tt")</strong>
+                </div>
+            </div>
+
+            <!-- Customer Details -->
+            <h5 class="fw-bold mb-3"><i class="bi bi-geo-alt text-success me-1"></i> بيانات التوصيل</h5>
+            <div class="row g-2 mb-4 bg-light p-3 rounded-3">
+                <div class="col-sm-6">
+                    <small class="text-muted d-block">اسم العميل:</small>
+                    <strong>@Model.CustomerFullName</strong>
+                </div>
+                <div class="col-sm-6">
+                    <small class="text-muted d-block">رقم الهاتف:</small>
+                    <strong dir="ltr">@Model.CustomerPhone</strong>
+                </div>
+                <div class="col-sm-6 mt-2">
+                    <small class="text-muted d-block">المحافظة:</small>
+                    <strong>@Model.GovernorateNameSnapshot</strong>
+                </div>
+                <div class="col-sm-6 mt-2">
+                    <small class="text-muted d-block">العنوان بالتفصيل:</small>
+                    <strong>@Model.Address</strong>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(Model.Notes))
+                {
+                    <div class="col-12 mt-2">
+                        <small class="text-muted d-block">ملاحظات التوصيل:</small>
+                        <span>@Model.Notes</span>
+                    </div>
+                }
+            </div>
+
+            <!-- Order Items -->
+            <h5 class="fw-bold mb-3"><i class="bi bi-bag-check text-success me-1"></i> أصناف الطلب</h5>
+            <div class="table-responsive mb-4">
+                <table class="table align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>الباقة</th>
+                            <th class="text-center">سعر الوحدة</th>
+                            <th class="text-center">الكمية</th>
+                            <th class="text-end">الإجمالي</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            <tr>
+                                <td><strong>@item.PackageNameSnapshot</strong></td>
+                                <td class="text-center">@item.UnitPriceSnapshot.ToString("N0") ج.م</td>
+                                <td class="text-center"><span class="badge bg-secondary">@item.Quantity</span></td>
+                                <td class="text-end fw-bold text-success">@item.LineTotal.ToString("N0") ج.م</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot class="table-group-divider">
+                        <tr>
+                            <td colspan="3" class="text-muted">إجمالي المنتجات</td>
+                            <td class="text-end fw-bold">@Model.Subtotal.ToString("N0") ج.م</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="text-muted">مصاريف الشحن (@Model.GovernorateNameSnapshot)</td>
+                            <td class="text-end fw-bold">@Model.ShippingCost.ToString("N0") ج.م</td>
+                        </tr>
+                        <tr class="table-active fs-5">
+                            <td colspan="3" class="fw-bold text-dark">الإجمالي النهائي</td>
+                            <td class="text-end fw-bold text-success">@Model.GrandTotal.ToString("N0") ج.م</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <!-- Payment Method notice -->
+            <div class="alert alert-success d-flex align-items-center gap-2 mb-4">
+                <i class="bi bi-cash-coin fs-4"></i>
+                <div>
+                    <strong>طريقة الدفع: الدفع نقدًا عند الاستلام</strong>
+                    <div class="small">المبلغ المطلوب سداده للمندوب: <strong>@Model.GrandTotal.ToString("N0") ج.م</strong></div>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <a href="/" class="btn btn-main px-4 py-2">
+                    <i class="bi bi-arrow-right me-1"></i>
+                    العودة للصفحة الرئيسية
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

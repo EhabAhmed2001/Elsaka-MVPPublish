@@ -1,0 +1,118 @@
+@model ElsakaHerbs.ViewModels.Packages.PackageViewModel
+@{
+    ViewData["Title"] = Model.Name;
+    ViewData["BodyClass"] = "checkout-page";
+
+    var images = Model.Images != null && Model.Images.Count > 0
+        ? Model.Images.Select(i => i.ImageUrl).ToList()
+        : new List<string> { Model.DefaultImageUrl };
+}
+
+<main class="container product-details-wrap my-5">
+    <div class="section-heading text-center">
+        <h2>تفاصيل <span>العرض</span></h2>
+    </div>
+
+    <section class="product-details-panel">
+        <div class="row g-4 g-lg-5 align-items-center">
+            <div class="col-lg-6">
+                <div class="product-gallery position-relative" aria-label="صور المنتج">
+                    <img id="galleryImage" src="@images[0]" alt="@Model.Name" class="img-fluid rounded">
+                    
+                    @if (images.Count > 1)
+                    {
+                        <button class="gallery-arrow gallery-prev" id="galleryPrev" type="button" aria-label="الصورة السابقة">
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                        <button class="gallery-arrow gallery-next" id="galleryNext" type="button" aria-label="الصورة التالية">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                    }
+                </div>
+
+                @if (images.Count > 1)
+                {
+                    <div class="gallery-dots d-flex justify-content-center gap-2 mt-3" id="galleryDots" aria-label="اختيار صورة">
+                        @for (var i = 0; i < images.Count; i++)
+                        {
+                            <button type="button" class="dot @(i == 0 ? "active" : "")" data-index="@i" aria-label="صورة @(i + 1)"></button>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="col-lg-6">
+                <div class="product-details-copy">
+                    <span class="eyebrow"><i class="bi bi-patch-check"></i> معلومات المنتج</span>
+
+                    <h1 id="productName">@Model.Name</h1>
+                    <p class="product-description" id="productDescription">@Model.Description</p>
+
+                    <div class="product-facts d-flex gap-4 my-3">
+                        @if (Model.WeightGrams > 0)
+                        {
+                            <div class="product-fact">
+                                <small class="text-muted d-block">الوزن / الحجم</small>
+                                <strong>@Model.WeightGrams جرام</strong>
+                            </div>
+                        }
+                        <div class="product-fact">
+                            <small class="text-muted d-block">المدة</small>
+                            <strong>@Model.DurationDays يوم</strong>
+                        </div>
+                        <div class="product-fact">
+                            <small class="text-muted d-block">عدد العبوات</small>
+                            <strong>@Model.PacketsCount عبوة</strong>
+                        </div>
+                    </div>
+
+                    <div class="product-detail-price mb-4">
+                        <span class="fs-2 fw-bold text-success">@Model.Price.ToString("N0") ج.م</span>
+                        @if (Model.OriginalPrice.HasValue && Model.OriginalPrice.Value > Model.Price)
+                        {
+                            <span class="text-decoration-line-through text-muted ms-3 fs-5">@Model.OriginalPrice.Value.ToString("N0") ج.م</span>
+                        }
+                    </div>
+
+                    <div class="d-grid d-sm-flex gap-2">
+                        <a class="btn btn-main flex-fill" href="/Checkout?package=@Model.Id">
+                            اطلب الآن <i class="bi bi-arrow-left"></i>
+                        </a>
+                        <button class="btn btn-outline-main flex-fill order-package"
+                                data-package-id="@Model.Id"
+                                data-package="@Model.Name"
+                                data-price="@Model.Price"
+                                data-duration="@Model.DurationDays يوم">
+                            أضف إلى السلة <i class="bi bi-bag-plus"></i>
+                        </button>
+                    </div>
+
+                    <div class="mt-4">
+                        <a class="inline-link" href="/#packages"><i class="bi bi-arrow-right"></i> عرض كل العبوات</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+@section Scripts {
+    <script>
+        const galleryImages = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(images));
+        let currentIndex = 0;
+        const mainImg = document.getElementById("galleryImage");
+        const dots = document.querySelectorAll("#galleryDots .dot");
+
+        function showImage(idx) {
+            if (idx < 0) idx = galleryImages.length - 1;
+            if (idx >= galleryImages.length) idx = 0;
+            currentIndex = idx;
+            if (mainImg) mainImg.src = galleryImages[currentIndex];
+            dots.forEach((d, i) => d.classList.toggle("active", i === currentIndex));
+        }
+
+        document.getElementById("galleryPrev")?.addEventListener("click", () => showImage(currentIndex - 1));
+        document.getElementById("galleryNext")?.addEventListener("click", () => showImage(currentIndex + 1));
+        dots.forEach(d => d.addEventListener("click", (e) => showImage(parseInt(e.target.dataset.index))));
+    </script>
+}

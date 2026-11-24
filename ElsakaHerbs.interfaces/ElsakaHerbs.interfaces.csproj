@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ElsakaHerbs.Entities\ElsakaHerbs.DataAccess.csproj" />
+    <ProjectReference Include="..\ElsakaHerbs.ViewModels\ElsakaHerbs.ViewModels.csproj" />
+  </ItemGroup>
+
+</Project>
