@@ -10,5 +10,6 @@ public class SiteContent : BaseEntity
     public string WhatsAppNumber { get; set; } = string.Empty;
     public bool IsWebsiteEnabled { get; set; } = true;
     public string? MaintenanceMessage { get; set; }
+    public string? IngredientsImageUrl { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

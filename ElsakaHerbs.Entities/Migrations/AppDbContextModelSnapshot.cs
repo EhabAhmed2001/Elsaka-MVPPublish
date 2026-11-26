@@ -344,6 +344,10 @@ namespace ElsakaHerbs.DataAccess.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<string>("IngredientsImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<bool>("IsWebsiteEnabled")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")

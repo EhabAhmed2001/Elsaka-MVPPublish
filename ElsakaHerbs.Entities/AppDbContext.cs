@@ -40,6 +40,7 @@ public class AppDbContext : DbContext
             b.Property(sc => sc.WhatsAppNumber).HasMaxLength(30).IsRequired();
             b.Property(sc => sc.IsWebsiteEnabled).HasDefaultValue(true);
             b.Property(sc => sc.MaintenanceMessage).HasMaxLength(1000);
+            b.Property(sc => sc.IngredientsImageUrl).HasMaxLength(500);
         });
 
         // ── GovernorateShipping ──────────────────────────────────────────────

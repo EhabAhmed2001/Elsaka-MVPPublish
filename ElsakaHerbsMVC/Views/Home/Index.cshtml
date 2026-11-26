@@ -77,7 +77,9 @@
 
 <!-- Ingredients Section -->
 <section class="section-pad soft-section" id="ingredients" data-section>
-    <img class="ingredients-image" src="~/assets/ing.jpeg" alt="مكونات المنتج">
+    <img class="ingredients-image"
+         src="@(!string.IsNullOrWhiteSpace(Model.SiteContent?.IngredientsImageUrl) ? Model.SiteContent.IngredientsImageUrl : "/assets/ing.jpeg")"
+         alt="مكونات المنتج">
 </section>
 
 <!-- Usage Section -->

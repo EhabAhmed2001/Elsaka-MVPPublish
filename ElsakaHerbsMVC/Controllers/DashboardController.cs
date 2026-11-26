@@ -143,6 +143,27 @@ public class DashboardController : Controller
         return RedirectToAction(nameof(Content));
     }
 
+    [HttpPost("content/ingredients-image")]
+    public async Task<IActionResult> UpdateIngredientsImage([FromForm] IFormFile image)
+    {
+        if (image == null || image.Length == 0)
+        {
+            return BadRequest(new { success = false, message = "يرجى اختيار صورة أولاً" });
+        }
+
+        var (success, error) = await _siteContentService.UpdateIngredientsImageAsync(
+            image.OpenReadStream(),
+            image.FileName);
+
+        if (success)
+        {
+            var updated = await _siteContentService.GetSiteContentAsync();
+            return Ok(new { success = true, message = "تم حفظ صورة المكونات بنجاح", imageUrl = updated.IngredientsImageUrl });
+        }
+
+        return BadRequest(new { success = false, message = error ?? "تعذر حفظ الصورة" });
+    }
+
     [HttpPost("shipping/update")]
     public async Task<IActionResult> UpdateShipping([FromBody] List<GovernorateShippingEditModel> models)
     {

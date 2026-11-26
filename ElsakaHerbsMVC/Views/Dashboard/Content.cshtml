@@ -114,6 +114,54 @@
         </div>
     </form>
 
+    <!-- Ingredients Section Image -->
+    <div class="panel editor-panel managed-wide mb-4 p-4 bg-white rounded shadow-sm border" id="ingredientsImagePanel">
+        <div class="editor-heading d-flex align-items-center gap-3 mb-3">
+            <span class="editor-icon fs-3 text-success"><i class="bi bi-image"></i></span>
+            <div>
+                <h3 class="h5 mb-1">صورة قسم المكونات</h3>
+                <p class="text-muted small mb-0">صورة واحدة تظهر في قسم المكونات على الصفحة الرئيسية. رفع صورة جديدة يحل محل الصورة الحالية تلقائياً.</p>
+            </div>
+        </div>
+
+        <div class="row g-4 align-items-start">
+            <div class="col-md-5">
+                <p class="fw-bold mb-2 small">الصورة الحالية</p>
+                <div class="border rounded p-2 bg-light text-center" style="min-height:140px; display:flex; align-items:center; justify-content:center;">
+                    @if (!string.IsNullOrWhiteSpace(content.IngredientsImageUrl))
+                    {
+                        <img id="ingCurrentImg" src="@content.IngredientsImageUrl" alt="صورة المكونات الحالية"
+                             class="img-fluid rounded" style="max-height:200px; object-fit:contain;">
+                    }
+                    else
+                    {
+                        <img id="ingCurrentImg" src="/assets/ing.jpeg" alt="الصورة الافتراضية"
+                             class="img-fluid rounded" style="max-height:200px; object-fit:contain;">
+                    }
+                </div>
+            </div>
+
+            <div class="col-md-7">
+                <p class="fw-bold mb-2 small">رفع صورة جديدة</p>
+                <div class="mb-3">
+                    <input class="form-control" type="file" id="ingImageInput" accept=".jpg,.jpeg,.png,.webp,.gif">
+                    <small class="text-muted">الأنواع المقبولة: JPG, PNG, WebP, GIF — الحد الأقصى: 5 ميجابايت</small>
+                </div>
+                <div id="ingPreviewWrap" class="mb-3 d-none">
+                    <p class="small fw-bold text-primary mb-1">معاينة الصورة الجديدة:</p>
+                    <div class="border rounded p-2 bg-light text-center">
+                        <img id="ingPreviewImg" src="#" alt="معاينة" class="img-fluid rounded" style="max-height:160px; object-fit:contain;">
+                    </div>
+                </div>
+                <div id="ingFeedback" class="mb-2 d-none"></div>
+                <button type="button" class="btn btn-success" id="btnSaveIngImg" disabled>
+                    <i class="bi bi-cloud-upload me-1"></i> حفظ الصورة
+                </button>
+            </div>
+        </div>
+    </div>
+
+
     <!-- Shipping Fees Management Table -->
     <div class="panel managed-wide p-4 bg-white rounded shadow-sm border">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
@@ -249,6 +297,94 @@
                 } finally {
                     this.disabled = false;
                     this.innerHTML = `<i class="bi bi-check2"></i> حفظ أسعار الشحن`;
+                }
+            });
+
+            // ── Ingredients Section Image Upload ───────────────────────────────
+            const ingInput   = document.getElementById("ingImageInput");
+            const ingPreviewWrap = document.getElementById("ingPreviewWrap");
+            const ingPreviewImg  = document.getElementById("ingPreviewImg");
+            const ingCurrentImg  = document.getElementById("ingCurrentImg");
+            const ingFeedback    = document.getElementById("ingFeedback");
+            const btnSaveIng     = document.getElementById("btnSaveIngImg");
+
+            const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+            const ALLOWED_EXT = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
+
+            function showIngFeedback(msg, type) {
+                ingFeedback.className = `mb-2 alert alert-${type}`;
+                ingFeedback.textContent = msg;
+                ingFeedback.classList.remove("d-none");
+            }
+
+            ingInput?.addEventListener("change", function () {
+                const file = this.files?.[0];
+                ingFeedback.classList.add("d-none");
+                ingPreviewWrap.classList.add("d-none");
+                btnSaveIng.disabled = true;
+
+                if (!file) return;
+
+                const ext = file.name.substring(file.name.lastIndexOf(".")).toLowerCase();
+                if (!ALLOWED_EXT.includes(ext)) {
+                    showIngFeedback(`نوع الملف غير مدعوم. الأنواع المقبولة: ${ALLOWED_EXT.join(", ")}`, "danger");
+                    this.value = "";
+                    return;
+                }
+                if (file.size > MAX_SIZE) {
+                    showIngFeedback("حجم الصورة كبير جداً. الحد الأقصى المسموح به هو 5 ميجابايت.", "danger");
+                    this.value = "";
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = e => {
+                    ingPreviewImg.src = e.target.result;
+                    ingPreviewWrap.classList.remove("d-none");
+                    btnSaveIng.disabled = false;
+                };
+                reader.readAsDataURL(file);
+            });
+
+            btnSaveIng?.addEventListener("click", async function () {
+                const file = ingInput?.files?.[0];
+                if (!file) return;
+
+                this.disabled = true;
+                this.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> جاري الرفع...`;
+                ingFeedback.classList.add("d-none");
+
+                const formData = new FormData();
+                formData.append("image", file);
+
+                try {
+                    const token = document.querySelector("input[name='__RequestVerificationToken']")?.value;
+                    const headers = {};
+                    if (token) headers["RequestVerificationToken"] = token;
+
+                    const res = await fetch("/dashboard/content/ingredients-image", {
+                        method: "POST",
+                        headers,
+                        body: formData
+                    });
+                    const data = await res.json();
+
+                    if (data.success) {
+                        showIngFeedback(data.message || "تم حفظ الصورة بنجاح", "success");
+                        // Update the current image preview immediately
+                        if (data.imageUrl && ingCurrentImg) {
+                            ingCurrentImg.src = data.imageUrl + "?t=" + Date.now();
+                        }
+                        ingPreviewWrap.classList.add("d-none");
+                        ingInput.value = "";
+                    } else {
+                        showIngFeedback(data.message || "تعذر حفظ الصورة", "danger");
+                    }
+                } catch {
+                    showIngFeedback("تعذر الاتصال بالخادم. يرجى المحاولة مرة أخرى.", "danger");
+                } finally {
+                    this.disabled = true;
+                    this.innerHTML = `<i class="bi bi-cloud-upload me-1"></i> حفظ الصورة`;
                 }
             });
         });
