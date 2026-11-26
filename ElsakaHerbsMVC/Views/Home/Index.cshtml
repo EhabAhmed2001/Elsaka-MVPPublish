@@ -191,7 +191,8 @@
                                     data-package-id="@pkg.Id"
                                     data-package="@pkg.Name"
                                     data-price="@pkg.Price"
-                                    data-duration="@pkg.DurationDays يوم">
+                                    data-duration="@pkg.DurationDays يوم"
+                                    data-image="@pkg.DefaultImageUrl">
                                 أضف إلى السلة <i class="bi bi-bag-plus"></i>
                             </button>
                             <a class="btn btn-main" href="/Checkout?package=@pkg.Id">
@@ -313,6 +314,151 @@
                     track.scrollLeft = scrollLeftInitial - walk;
                 });
             }
+
+            
+            // =====================================
+            // Reviews Auto Scroll
+            // =====================================
+
+            if (track) {
+
+                let autoScrollInterval = null;
+                let isReviewsVisible = false;
+                let isPaused = false;
+                let resumeTimeout = null;
+
+                const reviewsSection = document.getElementById("reviews");
+
+                function stopAutoScroll() {
+                    clearInterval(autoScrollInterval);
+                    autoScrollInterval = null;
+                }
+
+                function startAutoScroll() {
+
+                    if (!isReviewsVisible || isPaused || autoScrollInterval) {
+                        return;
+                    }
+
+                    autoScrollInterval = setInterval(() => {
+
+                        const maxScroll = track.scrollWidth - track.clientWidth;
+
+                        if (maxScroll <= 5) return;
+
+                        const currentScroll = Math.abs(track.scrollLeft);
+
+                        // Return smoothly to the beginning
+                        if (currentScroll >= maxScroll - 8) {
+
+                            track.scrollTo({
+                                left: 0,
+                                behavior: "smooth"
+                            });
+
+                        } else {
+
+                            // Use the same movement distance as the existing Next button
+                            const step = track.clientWidth * 0.85;
+
+                            track.scrollBy({
+                                left: -step,
+                                behavior: "smooth"
+                            });
+
+                        }
+
+                    }, 2500); // Movement second
+                }
+
+                function pauseAutoScroll(resumeAutomatically = false) {
+
+                    isPaused = true;
+                    stopAutoScroll();
+
+                    clearTimeout(resumeTimeout);
+
+                    if (resumeAutomatically) {
+                        resumeTimeout = setTimeout(() => {
+                            isPaused = false;
+                            startAutoScroll();
+                        }, 5000);
+                    }
+                }
+
+                // Start only when the reviews section becomes visible
+                if (reviewsSection) {
+
+                    const reviewsObserver = new IntersectionObserver((entries) => {
+
+                        entries.forEach(entry => {
+
+                            isReviewsVisible = entry.isIntersecting;
+
+                            if (isReviewsVisible) {
+                                startAutoScroll();
+                            } else {
+                                stopAutoScroll();
+                                isPaused = false;
+                                clearTimeout(resumeTimeout);
+                            }
+
+                        });
+
+                    }, {
+                        threshold: 0.3
+                    });
+
+                    reviewsObserver.observe(reviewsSection);
+                }
+
+                // Pause when the user hovers over the reviews
+                track.addEventListener("mouseenter", () => {
+                    pauseAutoScroll();
+                });
+
+                track.addEventListener("mouseleave", () => {
+                    isPaused = false;
+                    startAutoScroll();
+                });
+
+                // Pause while the user touches or manually scrolls
+                track.addEventListener("touchstart", () => {
+                    pauseAutoScroll();
+                }, { passive: true });
+
+                track.addEventListener("touchend", () => {
+                    pauseAutoScroll(true);
+                }, { passive: true });
+
+                // Pause when the user clicks navigation arrows
+                [prevBtn, nextBtn].forEach(button => {
+
+                    if (!button) return;
+
+                    button.addEventListener("click", () => {
+                        pauseAutoScroll(true);
+                    });
+
+                });
+
+                // Pause while a review image is open
+                if (reviewModal) {
+
+                    reviewModal.addEventListener("show.bs.modal", () => {
+                        pauseAutoScroll();
+                    });
+
+                    reviewModal.addEventListener("hidden.bs.modal", () => {
+                        isPaused = false;
+                        startAutoScroll();
+                    });
+
+                }
+
+            }
+
+
         });
     </script>
 }

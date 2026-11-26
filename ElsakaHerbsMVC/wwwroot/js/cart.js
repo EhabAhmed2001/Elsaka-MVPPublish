@@ -74,19 +74,23 @@
             name: "عبوة أعشاب",
             duration: "",
             price: 0,
+            image: "",
           };
           return `
             <article class="cart-item d-flex justify-content-between align-items-center py-3 border-bottom" data-id="${item.id}">
-              <div class="cart-item-info">
-                <h3 class="h6 mb-1">${p.name}</h3>
-                <small class="text-muted d-block">${p.duration} · ${money(p.price)}</small>
-                <div class="quantity-control d-flex align-items-center gap-2 mt-2">
-                  <button type="button" class="btn btn-sm btn-outline-secondary" data-action="decrease" aria-label="تقليل الكمية">−</button>
-                  <span class="px-2 fw-bold">${item.quantity}</span>
-                  <button type="button" class="btn btn-sm btn-outline-secondary" data-action="increase" aria-label="زيادة الكمية">+</button>
+              <div class="d-flex align-items-center gap-3 flex-grow-1 min-w-0">
+                ${p.image ? `<img src="${p.image}" alt="${p.name}" class="cart-item-img" loading="lazy">` : `<div class="cart-item-icon"><i class="bi bi-box-seam"></i></div>`}
+                <div class="cart-item-info">
+                  <h3 class="h6 mb-1 text-truncate">${p.name}</h3>
+                  <small class="text-muted d-block">${p.duration ? p.duration + " · " : ""}${money(p.price)}</small>
+                  <div class="quantity-control d-flex align-items-center gap-2 mt-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-action="decrease" aria-label="تقليل الكمية">−</button>
+                    <span class="px-2 fw-bold">${item.quantity}</span>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-action="increase" aria-label="زيادة الكمية">+</button>
+                  </div>
                 </div>
               </div>
-              <div class="cart-item-side text-end">
+              <div class="cart-item-side text-end flex-shrink-0 ps-2">
                 <strong class="d-block text-success mb-2">${money(p.price * item.quantity)}</strong>
                 <button class="btn btn-sm text-danger remove-item p-0" type="button" data-action="remove">
                   <i class="bi bi-trash"></i> <span>حذف</span>
@@ -123,7 +127,7 @@
     render();
   }
 
-  function addToCart(id, name, price, duration) {
+  function addToCart(id, name, price, duration, image) {
     const strId = String(id);
     if (!PACKAGES[strId] && name) {
       PACKAGES[strId] = {
@@ -131,7 +135,10 @@
         name: name,
         price: parseFloat(price) || 0,
         duration: duration || "",
+        image: image || "",
       };
+    } else if (PACKAGES[strId] && image && !PACKAGES[strId].image) {
+      PACKAGES[strId].image = image;
     }
 
     const found = cart.find((x) => String(x.id) === strId);
@@ -154,7 +161,8 @@
       const name = add.dataset.package;
       const price = add.dataset.price;
       const duration = add.dataset.duration;
-      addToCart(id, name, price, duration);
+      const image = add.dataset.image;
+      addToCart(id, name, price, duration, image);
       return;
     }
 
@@ -215,7 +223,10 @@
           name: btn.dataset.package || "عبوة أعشاب",
           price: parseFloat(btn.dataset.price) || 0,
           duration: btn.dataset.duration || "",
+          image: btn.dataset.image || "",
         };
+      } else if (btn.dataset.image && !PACKAGES[id].image) {
+        PACKAGES[id].image = btn.dataset.image;
       }
     });
 

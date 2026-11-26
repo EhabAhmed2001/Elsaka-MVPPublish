@@ -1665,6 +1665,17 @@
    font-size: 1.35rem
  }
 
+ .cart-item-img {
+   width: 52px;
+   height: 52px;
+   object-fit: contain;
+   background: #fafafa;
+   border-radius: 10px;
+   border: 1px solid var(--line);
+   padding: 3px;
+   flex-shrink: 0;
+ }
+
  .cart-item-info {
    flex: 1;
    min-width: 0
