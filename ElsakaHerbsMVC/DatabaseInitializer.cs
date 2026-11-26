@@ -85,7 +85,7 @@ public static class DatabaseInitializer
                 Price = 350,
                 OriginalPrice = null,
                 PurchaseCount = 142,
-                WeightGrams = 500,
+                WeightGrams = "500",
                 Description = "باقة تجريبية متكاملة لمدة 15 يوماً من الأعشاب الطبيعية المختارة بعناية لدعم صحتك.",
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
@@ -100,7 +100,7 @@ public static class DatabaseInitializer
                 Price = 620,
                 OriginalPrice = 700,
                 PurchaseCount = 385,
-                WeightGrams = 1000,
+                WeightGrams = "1000 ~ 950",
                 Description = "باقة تكفي لمدة شهر كامل، تمنحك النتائج الأفضل لاستعادة نشاطك وحيويتك الطبيعية.",
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
@@ -115,7 +115,7 @@ public static class DatabaseInitializer
                 Price = 1100,
                 OriginalPrice = 1400,
                 PurchaseCount = 210,
-                WeightGrams = 2000,
+                WeightGrams = "2000",
                 Description = "باقة الشهرين الاقتصادية لتجربة مستمرة ونتائج ملحوظة ومستدامة بأعلى جودة.",
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
@@ -130,7 +130,7 @@ public static class DatabaseInitializer
                 Price = 1550,
                 OriginalPrice = 2100,
                 PurchaseCount = 98,
-                WeightGrams = 3000,
+                WeightGrams = "3000",
                 Description = "الباقة العائلية الكبرى بأفضل توفير وقيمة لجميع أفراد الأسرة مع استمرارية كاملة.",
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow

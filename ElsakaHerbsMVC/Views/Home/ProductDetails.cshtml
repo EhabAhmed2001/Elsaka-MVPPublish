@@ -49,7 +49,7 @@
                     <p class="product-description" id="productDescription">@Model.Description</p>
 
                     <div class="product-facts d-flex gap-4 my-3">
-                        @if (Model.WeightGrams > 0)
+                        @if (!string.IsNullOrEmpty(Model.WeightGrams))
                         {
                             <div class="product-fact">
                                 <small class="text-muted d-block">الوزن / الحجم</small>
@@ -61,8 +61,8 @@
                             <strong>@Model.DurationDays يوم</strong>
                         </div>
                         <div class="product-fact">
-                            <small class="text-muted d-block">عدد العبوات</small>
-                            <strong>@Model.PacketsCount عبوة</strong>
+                            <small class="text-muted d-block">عدد البكتات</small>
+                            <strong>@Model.PacketsCount باكت</strong>
                         </div>
                     </div>
 

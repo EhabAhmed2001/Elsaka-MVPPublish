@@ -85,7 +85,7 @@
                             <td>@pkg.DurationDays يوم</td>
                             <td>@pkg.PacketsCount</td>
                             <td><strong class="text-success">@pkg.Price.ToString("N0") ج.م</strong></td>
-                            <td>@(pkg.WeightGrams > 0 ? $"{pkg.WeightGrams} جم" : "—")</td>
+                            <td>@(!string.IsNullOrEmpty(pkg.WeightGrams) ? $"{pkg.WeightGrams} جم" : "—")</td>
                             <td>@pkg.PurchaseCount</td>
                             <td>
                                 <span class="badge @(pkg.IsActive ? "bg-success" : "bg-secondary")">
@@ -144,7 +144,7 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label" for="pkgWeight">الوزن بالجرام</label>
-                            <input class="form-control" id="pkgWeight" name="weightGrams" type="number" min="0" placeholder="500">
+                            <input class="form-control" id="pkgWeight" name="weightGrams" placeholder="500">
                         </div>
                         <div class="col-md-3">
                             <label class="form-label" for="pkgPurchases">عدد مرات الشراء</label>

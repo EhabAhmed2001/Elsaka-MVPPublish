@@ -275,8 +275,9 @@ namespace ElsakaHerbs.DataAccess.Migrations
                     b.Property<int>("PurchaseCount")
                         .HasColumnType("int");
 
-                    b.Property<int>("WeightGrams")
-                        .HasColumnType("int");
+                    b.Property<string>("WeightGrams")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 

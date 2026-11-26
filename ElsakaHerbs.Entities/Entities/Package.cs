@@ -8,7 +8,7 @@ public class Package : BaseEntity
     public decimal? OriginalPrice { get; set; }
     public decimal Price { get; set; }
     public int PurchaseCount { get; set; } = 0;
-    public int WeightGrams { get; set; }
+    public string WeightGrams { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; }

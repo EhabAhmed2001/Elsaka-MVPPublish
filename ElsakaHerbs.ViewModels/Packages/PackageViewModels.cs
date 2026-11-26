@@ -11,7 +11,7 @@ public class PackageViewModel
     public decimal? OriginalPrice { get; set; }
     public decimal Price { get; set; }
     public int PurchaseCount { get; set; }
-    public int WeightGrams { get; set; }
+    public string WeightGrams { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
@@ -53,8 +53,7 @@ public class PackageFormModel
     [Range(0, int.MaxValue)]
     public int PurchaseCount { get; set; } = 0;
 
-    [Range(0, int.MaxValue, ErrorMessage = "الوزن غير صالح")]
-    public int WeightGrams { get; set; }
+    public string WeightGrams { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "الوصف مطلوب")]
     public string Description { get; set; } = string.Empty;

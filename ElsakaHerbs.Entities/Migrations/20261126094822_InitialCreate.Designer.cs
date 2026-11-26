@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ElsakaHerbs.DataAccess.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20261119193452_InitialCreate")]
+    [Migration("20261126094822_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -130,7 +130,7 @@ namespace ElsakaHerbs.DataAccess.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<int>("OrderStatus")
+                    b.Property<int>("OrderStatusId")
                         .HasColumnType("int");
 
                     b.Property<decimal>("ShippingCost")
@@ -145,6 +145,8 @@ namespace ElsakaHerbs.DataAccess.Migrations
 
                     b.HasIndex("OrderNumber")
                         .IsUnique();
+
+                    b.HasIndex("OrderStatusId");
 
                     b.ToTable("Orders");
                 });
@@ -186,6 +188,58 @@ namespace ElsakaHerbs.DataAccess.Migrations
                     b.ToTable("OrderItems");
                 });
 
+            modelBuilder.Entity("ElsakaHerbs.DataAccess.Entities.OrderStatus", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("StatusColor")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("StatusName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StatusName")
+                        .IsUnique();
+
+                    b.ToTable("OrderStatuses");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            StatusColor = "#0d6efd",
+                            StatusName = "طلب جديد"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            StatusColor = "#f59e0b",
+                            StatusName = "تم الشحن"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            StatusColor = "#10b981",
+                            StatusName = "تم التسليم"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            StatusColor = "#ef4444",
+                            StatusName = "ملغي"
+                        });
+                });
+
             modelBuilder.Entity("ElsakaHerbs.DataAccess.Entities.Package", b =>
                 {
                     b.Property<int>("Id")
@@ -224,8 +278,9 @@ namespace ElsakaHerbs.DataAccess.Migrations
                     b.Property<int>("PurchaseCount")
                         .HasColumnType("int");
 
-                    b.Property<int>("WeightGrams")
-                        .HasColumnType("int");
+                    b.Property<string>("WeightGrams")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -292,6 +347,15 @@ namespace ElsakaHerbs.DataAccess.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<bool>("IsWebsiteEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("MaintenanceMessage")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
                     b.Property<byte>("SingletonEnforcer")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("tinyint")
@@ -324,7 +388,15 @@ namespace ElsakaHerbs.DataAccess.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("ElsakaHerbs.DataAccess.Entities.OrderStatus", "OrderStatus")
+                        .WithMany("Orders")
+                        .HasForeignKey("OrderStatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("GovernorateShipping");
+
+                    b.Navigation("OrderStatus");
                 });
 
             modelBuilder.Entity("ElsakaHerbs.DataAccess.Entities.OrderItem", b =>
@@ -364,6 +436,11 @@ namespace ElsakaHerbs.DataAccess.Migrations
             modelBuilder.Entity("ElsakaHerbs.DataAccess.Entities.Order", b =>
                 {
                     b.Navigation("OrderItems");
+                });
+
+            modelBuilder.Entity("ElsakaHerbs.DataAccess.Entities.OrderStatus", b =>
+                {
+                    b.Navigation("Orders");
                 });
 
             modelBuilder.Entity("ElsakaHerbs.DataAccess.Entities.Package", b =>

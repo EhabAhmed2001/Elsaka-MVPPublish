@@ -90,7 +90,7 @@ public class HomeController : Controller
                 image = p.DefaultImageUrl,
                 description = p.Description,
                 packets = p.PacketsCount,
-                weight = p.WeightGrams > 0 ? $"{p.WeightGrams} جم" : null
+                weight = $"{p.WeightGrams} جم" 
             });
 
         return Json(result);

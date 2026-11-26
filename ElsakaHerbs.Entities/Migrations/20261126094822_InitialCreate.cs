@@ -1,7 +1,9 @@
-﻿using System;
+﻿//using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
+
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
 namespace ElsakaHerbs.DataAccess.Migrations
 {
@@ -43,6 +45,20 @@ namespace ElsakaHerbs.DataAccess.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "OrderStatuses",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    StatusName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    StatusColor = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OrderStatuses", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Packages",
                 columns: table => new
                 {
@@ -54,7 +70,7 @@ namespace ElsakaHerbs.DataAccess.Migrations
                     OriginalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     PurchaseCount = table.Column<int>(type: "int", nullable: false),
-                    WeightGrams = table.Column<int>(type: "int", nullable: false),
+                    WeightGrams = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
@@ -76,6 +92,8 @@ namespace ElsakaHerbs.DataAccess.Migrations
                     CtaTitle = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     CtaDescription = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     WhatsAppNumber = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    IsWebsiteEnabled = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
+                    MaintenanceMessage = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     SingletonEnforcer = table.Column<byte>(type: "tinyint", nullable: false, defaultValue: (byte)1)
                 },
@@ -102,7 +120,7 @@ namespace ElsakaHerbs.DataAccess.Migrations
                     Subtotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     ShippingCost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     GrandTotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    OrderStatus = table.Column<int>(type: "int", nullable: false),
+                    OrderStatusId = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -112,6 +130,12 @@ namespace ElsakaHerbs.DataAccess.Migrations
                         name: "FK_Orders_GovernorateShippings_GovernorateShippingId",
                         column: x => x.GovernorateShippingId,
                         principalTable: "GovernorateShippings",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Orders_OrderStatuses_OrderStatusId",
+                        column: x => x.OrderStatusId,
+                        principalTable: "OrderStatuses",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -167,6 +191,17 @@ namespace ElsakaHerbs.DataAccess.Migrations
                         onDelete: ReferentialAction.SetNull);
                 });
 
+            migrationBuilder.InsertData(
+                table: "OrderStatuses",
+                columns: new[] { "Id", "StatusColor", "StatusName" },
+                values: new object[,]
+                {
+                    { 1, "#0d6efd", "طلب جديد" },
+                    { 2, "#f59e0b", "تم الشحن" },
+                    { 3, "#10b981", "تم التسليم" },
+                    { 4, "#ef4444", "ملغي" }
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_GovernorateShippings_GovernorateKey",
                 table: "GovernorateShippings",
@@ -192,6 +227,17 @@ namespace ElsakaHerbs.DataAccess.Migrations
                 name: "IX_Orders_OrderNumber",
                 table: "Orders",
                 column: "OrderNumber",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_OrderStatusId",
+                table: "Orders",
+                column: "OrderStatusId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderStatuses_StatusName",
+                table: "OrderStatuses",
+                column: "StatusName",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -231,6 +277,9 @@ namespace ElsakaHerbs.DataAccess.Migrations
 
             migrationBuilder.DropTable(
                 name: "GovernorateShippings");
+
+            migrationBuilder.DropTable(
+                name: "OrderStatuses");
         }
     }
 }
